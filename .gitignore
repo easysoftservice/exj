@@ -5,7 +5,7 @@ Homestead.json
 _ide_helper.php
 composer.lock
 .phpstorm.meta.php
-.git/
+/.git/
 .git/*
 .gitignore
 .vscode/
