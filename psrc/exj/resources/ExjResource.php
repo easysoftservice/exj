@@ -1,0 +1,932 @@
+<?php
+
+// no direct access
+defined('_JEXEC') or die('Restricted access');
+
+/**
+ * Recursos de la Aplicación
+ *
+ */
+class ExjResource {
+
+    const PREFIX_FILEJS_PACK = 'pack_';
+    const DIR_ROOT_APP = 'app';
+    const DIR_FILES_JS = 'app/public/js';
+    const DIR_FILES_JS_ALL = 'app/public/js/all';
+
+    // valor numérico
+    const SEC_DEPLOY_JS = 201;
+
+    protected static $pathDirBase='';
+    private static $_mapPrefixesCmp = null;
+
+    const PREFIXES_COMPS = array(
+        'exj_',
+        'app_',
+    );
+
+    /**
+     * Devuelve un array de los componentes que tienen helpers
+     *
+     * @return array
+     */
+    protected static function GetComponentsHelpers() {
+        $componentsHelpers = array();
+
+        $componentsHelpers[] = 'app_personas';
+        $componentsHelpers[] = 'app_loc_cities';
+        $componentsHelpers[] = 'app_companias';
+        $componentsHelpers[] = 'app_clientes';
+        $componentsHelpers[] = 'app_proveedors';
+        $componentsHelpers[] = 'app_inventarios';
+        $componentsHelpers[] = 'app_identificacion_tipos';
+        $componentsHelpers[] = 'app_ventas';
+        $componentsHelpers[] = 'app_ven_cuotas';
+
+        // pack_ventas.helper.js
+        
+        return $componentsHelpers;
+    }
+
+    public static function GetPathHelperPublicJs(){
+        return self::GetPathBase().'/app/' . self::GetPathRelativeHelperPublicJs();
+    }
+
+    public static function GetPathRelativeHelperPublicJs(){
+        return 'public/js/' . self::PREFIX_FILEJS_PACK . 'web.helper.js';
+    }
+
+    static function getTemplateJavaScript($src) {
+        $script = '<script language="javascript" type="text/javascript" src="' . $src . '">';
+        $script .= '</script>';
+        $script .= "\n";
+        return $script;
+    }
+
+    protected static function GetURIFilesJs() {
+        $pathComponets = JURI::base();
+        $pathComponets .= self::DIR_FILES_JS;
+
+        return $pathComponets;
+    }
+
+    public static function GetPathBase() {
+        if (!self::$pathDirBase) {
+            self::$pathDirBase = JPATH_BASE;
+            self::$pathDirBase = str_replace('\\', '/', self::$pathDirBase);
+        }
+
+        return self::$pathDirBase;
+    }
+
+    protected static function GetPathDirFilesJs() {
+        $pathComponets = self::GetPathBase();
+        $pathComponets .= '/' . self::DIR_FILES_JS;
+
+        return $pathComponets;
+    }
+
+    static function getURIBaseApp() {
+        $uri = JURI::base();
+        $uri .= self::DIR_ROOT_APP;
+
+        return $uri;
+    }
+
+    public static function GetUriExtJs() {
+        $uri = JURI::base();
+        $uri .= "libraries/extjs/extjs340";
+
+        return $uri;
+    }
+
+    static function buildSrcs($path, $namesFiles, $isModeDebugUI) {
+        $srcs = array();
+        foreach ($namesFiles as $nameFile) {
+            // $nameFile = str_replace("//", '/', $nameFile);
+            $src = '';
+            if ($path) {
+                $src .= $path . '/';
+                ;
+            }
+
+            $src .= self::buildFileJs($nameFile);
+            $srcs[] = $src;
+        }
+
+        return $srcs;
+    }
+
+    static function getSrcs_ExtJs($isModeDebugUI) {
+        $namesFiles = array();
+        $namesFiles[] = "adapter/ext/ext-base.js";
+        $namesFiles[] = "ext-all.js";
+
+        // note: fijar esto segun el lenguaje del usuario
+        $namesFiles[] = "src/locale/ext-lang-es.js";
+
+        return self::buildSrcs(self::GetUriExtJs(), $namesFiles, $isModeDebugUI);
+    }
+
+    static function getSrcs_CompBase($isModeDebugUI) {
+        if (!$isModeDebugUI) {
+            return array();
+        }
+
+        $namesFiles = array();
+
+        $uriBase = self::getURIBaseApp();
+        $uriBase .= "/framework/exj/psrc/resources/js";
+
+        /*
+          if ($isModeDebugUI) {
+          $uriBase .= '/src';
+          $namesFiles[] = "extend/TabCloseMenu";
+          $namesFiles[] = "extend/Portal";
+          $namesFiles[] = "extend/BubblePanel";
+          $namesFiles[] = "extend/LinkButton";
+          $namesFiles[] = "extend/ValidationTypes";
+          $namesFiles[] = "extend/FileUploadField";
+          }
+         */
+        $namesFiles[] = "extend/exj_extend-all";
+
+        $namesFiles[] = "exj_base";
+        $namesFiles[] = "exj_extends";
+        $namesFiles[] = "exj_extend_layouts";
+        $namesFiles[] = "exj_action_grid";
+        $namesFiles[] = "exj_files";
+        $namesFiles[] = "exj_mail";
+        $namesFiles[] = "exj_override";
+        $namesFiles[] = "exj_util";
+        $namesFiles[] = "exj_main";
+
+        return self::buildSrcs($uriBase, $namesFiles, $isModeDebugUI);
+    }
+
+    // componentes desde menu, que son excluidos
+    public static function GetArrayModulesMenuExcludes() {
+        $query = "SELECT g.name 
+ FROM jos_menu m INNER JOIN jos_groups g ON m.access = g.id 
+ WHERE (m.menutype = 'mnu_gym') and g.id >= 3 and m.published <= 0";
+
+        $db = & JFactory::getDBO();
+        $db->setQuery($query);
+        return $db->loadResultArray();
+    }
+
+    public static function GetGroupsUsers() {
+        $query = "SELECT aclg.id AS gid, aclg.name AS name_gid, Count(u.id) AS nro_usrs 
+ FROM jos_core_acl_aro_groups aclg INNER JOIN jos_users u ON aclg.id = u.gid 
+ WHERE (aclg.parent_id > 0) 
+ GROUP BY aclg.id, aclg.name";
+
+        $db = & JFactory::getDBO();
+        $db->setQuery($query);
+        return $db->loadObjectList();
+    }
+
+    public static function GetAliasGroupsUsers() {
+        $items = self::GetGroupsUsers();
+        if (empty($items)) {
+            return $items;
+        }
+
+        foreach ($items as &$item) {
+            $item->alias = self::GetAliasFromUserType($item->name_gid);
+        }
+
+        return $items;
+    }
+
+    public static function GetNameFileJsAppPack($usertype=''){
+        if (!$usertype) {
+            if ($usr = JFactory::getUser()) {
+                $usertype = $usr->usertype;
+            }
+        }
+
+        $value = self::PREFIX_FILEJS_PACK;
+        $value .= 'app_'.dechex(self::SEC_DEPLOY_JS).'_';
+        $value .= self::GetAliasFromUserType($usertype);
+
+        $value .= '.js';
+
+        return $value;
+    }
+
+    public static function GetAliasFromUserType($usertype){
+        $alias = trim(strtolower($usertype));
+        if ($alias) {
+            if (strpos($alias, ' ') > 0) {
+                $partes = explode(' ', $alias);
+                $alias = '';
+                foreach ($partes as $parte) {
+                    $alias .= substr($parte, 0, 1);
+                }
+            }
+        }
+        else {
+            $alias = 'sa';
+        }
+
+        return $alias;
+    }
+
+    // xxxx
+    public static function GetCfgMinify() {
+        $itemsGids = self::GetAliasGroupsUsers();
+
+        $cfgPack = new stdClass();
+        $cfgPack->directoryRoot = 'app';
+        $cfgPack->dirOutput = self::DIR_FILES_JS_ALL;
+        $cfgPack->prefixPack = self::PREFIX_FILEJS_PACK;
+
+        // $cfgPack->dirOutput = self::GetDirProductionFilesJs();
+        
+        $cfgPack->dirsExclude = array(
+            'exj_deploys', 'exj_components' , 'exj_component_tpls',
+            'com_sfac_enquiry'
+        );
+        
+        $cfgPack->modulesMainExcludesGen = self::GetArrayModulesMenuExcludes();
+        foreach ($cfgPack->modulesMainExcludesGen as $moduleMainExcludeGen) {
+            if (in_array($moduleMainExcludeGen, $cfgPack->dirsExclude)) {
+                $key = array_search(
+                    $moduleMainExcludeGen, $cfgPack->modulesMainExcludesGen
+                );
+
+                array_splice($cfgPack->modulesMainExcludesGen, $key, 1);
+            }
+        }
+
+        /*
+        $values = array();
+        
+        foreach ($itemsGids as $itemGid) {
+            unset($itemGid->nro_usrs);
+         
+            $itemGid->outputFilePack = self::GetNameFileJsPackModules(
+                $itemGid->name_gid
+            );
+
+            $itemGid->modulesMainExcludes = self::GetArrayModulesGidExcludes($itemGid->gid);
+
+            foreach ($itemGid->modulesMainExcludes as $moduleMainExclude) {
+                if (in_array($moduleMainExclude, $cfgPack->modulesMainExcludesGen)) {
+                    $key = array_search($moduleMainExclude, $itemGid->modulesMainExcludes);
+                    array_splice($itemGid->modulesMainExcludes, $key, 1);
+                }
+                elseif(in_array($moduleMainExclude, $cfgPack->dirsExclude)){
+                    $key = array_search($moduleMainExclude, $itemGid->modulesMainExcludes);
+                    array_splice($itemGid->modulesMainExcludes, $key, 1);
+                }
+            }
+
+            $values[] = $itemGid;
+        }
+
+        $cfgPack->packs = $values;
+        */
+
+        return $cfgPack;
+    }
+
+    public static function GetDirProductionFilesJs(){
+        $dirProd = realpath(JPATH_BASE.'/..');
+        $dirProd = str_replace("\\", "/", $dirProd);
+        $dirProd .= '/release/gymcloud/produccion/'.self::DIR_FILES_JS;
+        
+        return $dirProd;
+    }
+
+    public static function GetDirAppWeb(){
+        $dirProd = JPATH_BASE;
+        $dirProd = str_replace("\\", "/", $dirProd);
+        $dirProd .= '/app/web';
+        
+        return $dirProd;
+    }
+
+    // ExjResource::WriteFileCfgMinify();
+    public static function WriteFileCfgMinify(){
+        $pathFile = self::GetPathFileCfgMinify();
+        $content = self::GetCfgMinify();
+
+        $strJson = json_encode($content, JSON_PRETTY_PRINT);
+        file_put_contents($pathFile, $strJson);
+    }
+
+    public static function GetPathFileCfgMinify(){
+        return (JPATH_BASE.'/app-minify-cfg.json');
+    }
+
+
+    public static function GetArrayModulesGidExcludes($gid=0) {
+        if (!$gid) {
+            $user = & JFactory::getUser();
+            if (!$user->id) {
+                return $componetsApp;
+            }
+
+            $gid = $user->gid;
+        }
+
+        $sq_access = "SELECT grps.id AS gid
+ FROM 
+  jos_noixacl_rules rul INNER JOIN 
+  jos_k2_categories k2c ON rul.axo_section = k2c.id INNER JOIN 
+  jos_groups grps ON k2c.access = grps.id INNER JOIN 
+  jos_core_acl_aro_groups aro_grp ON rul.aro_value = aro_grp.value 
+ WHERE 
+  (rul.aco_section = 'com_k2' AND k2c.published = 1 AND aro_grp.id = $gid) 
+ GROUP BY grps.id";
+
+        $query = "SELECT g.name AS mod_name 
+ FROM jos_groups g LEFT JOIN ($sq_access) sq_access ON g.id = sq_access.gid 
+ WHERE g.id >= 3 AND sq_access.gid IS NULL";
+
+        $db = & JFactory::getDBO();
+        $db->setQuery($query);
+        return $db->loadResultArray();
+    }
+
+
+
+    /**
+     * Obtiene los componentes de la aplicacion
+     *
+     * @return unknown
+     */
+    static function getComponetsApp($isModeDebugUI, $gid=0) {
+        $componetsApp = array();
+
+        if (!$gid) {
+            $user = & JFactory::getUser();
+            if (!$user->id) {
+                return $componetsApp;
+            }
+
+            $gid = $user->gid;
+        }
+
+        $query = "SELECT 
+  Count(rul.axo_value) AS num_rul, k2c.name AS mod_title, k2c.access, grps.name AS mod_name 
+ FROM 
+  jos_noixacl_rules rul INNER JOIN 
+  jos_k2_categories k2c ON rul.axo_section = k2c.id INNER JOIN 
+  jos_groups grps ON k2c.access = grps.id INNER JOIN 
+  jos_core_acl_aro_groups aro_grp ON rul.aro_value = aro_grp.value 
+ WHERE 
+  rul.aco_section = 'com_k2' AND k2c.published = 1 AND aro_grp.id = $gid 
+ GROUP BY k2c.name, k2c.access, grps.name
+ ORDER BY k2c.access";
+
+        $db = & JFactory::getDBO();
+        $db->setQuery($query);
+        $moduleList = $db->loadObjectList();
+
+        foreach ($moduleList as $module) {
+            if (strtolower($module->mod_name) == 'registered') {
+                continue;
+            }
+
+            $componetApp = new stdClass();
+            $componetApp->nameComponent = self::getNameComponent($module->mod_name);
+            $componetApp->titleComponent = $module->mod_title;
+            $componetApp->nameFileJs = self::GetNameFileJsFromComp(
+                $componetApp->nameComponent, $isModeDebugUI
+            );
+
+            if (!$componetApp->nameFileJs) {
+                continue;
+            }
+
+            $componetsApp[] = $componetApp;
+        }
+
+        return $componetsApp;
+    }
+
+    static function getNameComponent($nameComp) {
+        $nameComp = trim($nameComp);
+        return str_replace("mod_t", "com_app", $nameComp);
+    }
+
+    static function pathInfoFileDir($pathFile, &$dirName, &$filename, &$extension) {
+        $partes = pathinfo($pathFile);
+
+        $dirName = $partes['dirname'];
+//		$baseName = $partes['basename'];
+        $extension = '';
+        if (isset($partes['extension'])) {
+            $extension = $partes['extension'];
+        }
+
+        $filename = $partes['filename'];
+
+        // $extension = strtolower($extension);
+    }
+
+    static function buildFileJs($nameFile) {
+        $extFile = '';
+        $dirName = '';
+        $onlyName = '';
+        $isModeDebugUI = self::IsModeDebugUI();
+
+        //	echo "<br/>nameFile: $nameFile";
+        self::pathInfoFileDir($nameFile, $dirName, $onlyName, $extFile);
+
+        //	echo " dirName: $dirName onlyName: $onlyName";
+
+        if (!$extFile) {
+            $extFile = 'js';
+        }
+
+        if (strlen($onlyName) >= 4) {
+            $prefix = substr($onlyName, 0, 4);
+            switch ($prefix) {
+                case 'ext-':
+                    if ($isModeDebugUI) {
+                        $onlyName .= '-debug';
+                    }
+                    break;
+
+                case 'exj_':
+                case 'exj-':
+                    if (!$isModeDebugUI) {
+                        $onlyName = self::PREFIX_FILEJS_PACK . $onlyName;
+                    }
+                    break;
+
+                default:
+                    $pos = strpos($onlyName, '.main');
+                    if ($pos !== false) {
+                        if (!$isModeDebugUI) {
+                            if ($onlyName != 'deploys.main') {
+                                $onlyName = self::PREFIX_FILEJS_PACK . $onlyName;
+                            }
+                        }
+                    } else {
+                        $pos = strpos($onlyName, '.helper');
+                        if ($pos !== false) {
+                            if (!$isModeDebugUI) {
+                                if ($onlyName != 'deploys.helper') {
+                                    $onlyName = self::PREFIX_FILEJS_PACK . $onlyName;
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+            }
+        }
+
+        if ($dirName == '.' || $dirName == '..') {
+            $dirName = '';
+        }
+        // xxx
+        $pathFileJs = $dirName;
+        if ($pathFileJs) {
+            $pathFileJs .= '/';
+        }
+
+        $pathFileJs .= $onlyName . '.' . $extFile;
+        // echo " <b>pathFileJs</b>: $pathFileJs";
+        return $pathFileJs;
+    }
+
+    private static function _GetNameFileFromNameGroup($nameGrp){
+        $nameFileJs = '';
+        if (strlen($nameGrp) > 3) {
+            $posIni = false;
+
+            if (strpos($nameGrp, ExjObject::PREFIX_COMP_FRAMEWORK) === 0) {
+                $posIni = strlen(ExjObject::PREFIX_COMP_FRAMEWORK);
+            }
+            elseif(strpos($nameGrp, ExjObject::PREFIX_COMP_APP) === 0){
+                $posIni = strlen(ExjObject::PREFIX_COMP_APP);
+            }
+
+            if ($posIni === false) {
+                $posIni = strrpos($nameGrp, '_');
+                if ($posIni !== false) {
+                    $posIni += 1;
+                }
+            }
+
+            if ($posIni !== false) {
+                $nameFileJs = substr($nameGrp, $posIni);
+                $nameFileJs = ltrim($nameFileJs, '_');
+            }
+        }
+
+        if (!$nameFileJs) {
+            $nameFileJs = $nameGrp;
+        }
+
+        return $nameFileJs;
+    }
+
+    // ExjResource::GetNameFileJsFromComp()
+    public static function GetNameFileJsFromComp($nameComp, $isModeDebugUI) {
+        $nameFileJs = '';
+        if (strlen($nameComp) < 6) {
+            $nameFileJs = $nameComp;
+        } else {
+            $startOffset = 0;
+
+            $mapPrefixes = self::GetMapPrefixesComps();
+            foreach ($mapPrefixes as $prefix => $len) {
+                if (strpos($nameComp, $prefix) === 0) {
+                    $startOffset = $len;
+                    break;
+                }
+            }
+
+            $nameFileJs = substr($nameComp, $startOffset);
+        }
+        
+        $nameFileJs = strtolower($nameFileJs);
+        $nameFileJs .= '.main.js';
+
+        $nameFileJs = self::buildFileJs($nameFileJs);
+
+        return $nameFileJs;
+    }
+
+    /*
+    public static function GetNameFileHelperJs($nameComp) {
+        $nameFileJs = '';
+        if (strlen($nameComp) < 6) {
+            $nameFileJs = $nameComp;
+        } else {
+            $startOffset = 9;
+
+            $subfijo = substr($nameComp, 0, 7);
+            if ($subfijo == 'com_exj') {
+                $startOffset = 8;
+            }
+
+            $nameFileJs = substr($nameComp, $startOffset);
+        }
+        $nameFileJs = strtolower($nameFileJs);
+        $nameFileJs .= '.helper.js';
+
+        $nameFileJs = self::buildFileJs($nameFileJs);
+
+        return $nameFileJs;
+    }
+    */
+
+    // ExjResource::ReBuildAllFilesJsAppPack()
+    public static function ReBuildAllFilesJsAppPack(){
+        $items = self::GetGroupsUsers();
+        $nameFilesOut = array();
+
+        foreach ($items as $item) {
+            $nameFile = self::GetNameFileJsAppPack($item->name_gid);
+            $fullPath = self::GetPathDirFilesJs().'/'. $nameFile;
+            self::BuildFileJsAppPack($fullPath, $item->gid);
+
+            $nameFilesOut[] = $nameFile;
+        }
+
+        return $nameFilesOut;
+    }
+
+    private static function BuildFileJsAppPack($fullPathOut, $gid=0){
+        // echo "<br>BuildFileJsAppPack. $fullPathOut";
+
+        $isModeDebugUI = false;
+        // echo "construir file: $nameFile";
+        // archivos js desde permisos
+        // bbbbb
+        $componetsApp = self::getComponetsApp($isModeDebugUI, $gid);
+        // print_r($componetsApp);
+
+        $filesJoins = array(
+            self::PREFIX_FILEJS_PACK.'exj_extend-all.js',
+            self::PREFIX_FILEJS_PACK.'exj_base.js',
+            self::PREFIX_FILEJS_PACK.'exj_extends.js',
+            self::PREFIX_FILEJS_PACK.'exj_extend_layouts.js',
+            self::PREFIX_FILEJS_PACK.'exj_action_grid.js',
+            self::PREFIX_FILEJS_PACK.'exj_files.js',
+            self::PREFIX_FILEJS_PACK.'exj_mail.js',
+            self::PREFIX_FILEJS_PACK.'exj_override.js',
+            self::PREFIX_FILEJS_PACK.'exj_util.js',            
+            self::PREFIX_FILEJS_PACK.'exj_main.js'
+        );
+
+        foreach ($componetsApp as $componetApp) {
+            $nameComponent = $componetApp->nameComponent;
+            $fileJsPack = $componetApp->nameFileJs;
+            $pathFile = self::DIR_FILES_JS_ALL . '/' . $fileJsPack;
+            if (!file_exists($pathFile)) {
+                // echo "\nNO EXISTE: ". $pathFile;
+                continue;
+            }
+
+            if (!in_array($fileJsPack, $filesJoins)) {
+                $filesJoins[] = $fileJsPack;
+            }
+
+            // echo "\npathFile: ". $pathFile;
+        }
+
+        // leer desde disco los helpers, tenga o no permiso
+        $filesDir = self::GetFilesJsFromDir(self::DIR_FILES_JS_ALL, $filesJoins);
+        foreach ($filesDir as $fileDir) {
+            if (stripos($fileDir, '.helper.') > 0) {
+                $filesJoins[] = $fileDir;
+                // echo "<br>ADD FILE HELPER: $fileDir";
+                continue;
+            }
+
+            $isMain = strpos($fileDir, '.main.') > 0;
+            if ($isMain) {
+                continue;
+            }
+
+            if (in_array($fileDir, $filesJoins)) {
+                continue;
+            }
+
+            // echo "<br>INCLUYENDO extra: $fileDir";
+            $filesJoins[] = $fileDir;
+        }
+
+        // echo "\nfilesJoins: ". print_r($filesJoins, true);
+        $codesJs = "/* GymCloud.- Autor: Byron V. Córdova Mora */\n";
+        foreach ($filesJoins as $fileJoin) {
+            $pathFile = self::DIR_FILES_JS_ALL . '/' . $fileJoin;
+
+            $codeJs = file_get_contents($pathFile);
+            if (!$codeJs) {
+                continue;
+            }
+
+            $codesJs .= $codeJs;
+        }
+
+        if (file_put_contents($fullPathOut, $codesJs)) {
+            self::DeleteFileSimilar($fullPathOut);
+        }
+    }
+
+    public static function GetFilesJsDevFromDir($pathDir, $excludesDirBase=null){
+        $out = array();
+        $files = scandir($pathDir);
+        $out = array();
+        if (empty($files)) {
+            return $out;
+        }
+
+        foreach ($files as $nameFile) {
+            if ($nameFile == '.' || $nameFile == '..') {
+                continue;
+            }
+
+            $pathFile = $pathDir.'/'.$nameFile;
+            if (is_file($pathFile)) {
+                if (strpos($nameFile, self::PREFIX_FILEJS_PACK)===0) {
+                    continue;
+                }
+
+                if (preg_match('/\.js$/', $nameFile)) {
+                    $out[] = $nameFile;
+                }
+
+                continue;
+            }
+
+            if (is_dir($pathFile)) {
+                $isDirView = (strpos($pathDir, '/views') > 0);
+                if (!$isDirView && !empty($excludesDirBase)) {
+                    if (in_array($nameFile, $excludesDirBase)) {
+                   //     echo "\nExclude: $pathFile";
+                        continue;
+                    }
+                }
+
+                $filesJsSubDir = self::GetFilesJsDevFromDir($pathFile, $excludesDirBase);
+                if (!empty($filesJsSubDir)) {
+                    foreach ($filesJsSubDir as $fileJsSubDir) {
+                        $out[] = $nameFile . '/' . $fileJsSubDir;
+                    }
+                }
+
+                continue;
+            }
+        }
+
+        return $out;
+    }
+
+    protected static function GetFilesJsFromDir($pathDir, $excepts=null){
+        $files = scandir($pathDir);
+        $out = array();
+        if (empty($files)) {
+            return $out;
+        }
+
+        foreach ($files as $nameFile) {
+            if ($nameFile == '.' || $nameFile == '..' || is_dir($nameFile)) {
+                continue;
+            }
+
+            if (!empty($excepts) && in_array($nameFile, $excepts)) {
+                continue;
+            }
+
+            if (preg_match('/\.js$/', $nameFile)) {
+                $out[] = $nameFile;
+            }
+        }
+
+        return $out;
+    }
+
+    protected static function DeleteFileSimilar($pathFileOk){
+        $nameFileOk = basename($pathFileOk);
+        if (!preg_match('/(_[a-z]+.js)$/', $nameFileOk, $matches)) {
+            return;
+        }
+
+        $endName = $matches[0];
+        if (!$endName) {
+            return;
+        }
+
+        $pathDir = dirname($pathFileOk);
+
+        $files = self::GetFilesJsFromDir($pathDir, array($nameFileOk));
+        if (empty($files)) {
+            return;
+        }
+
+        // echo "\nnameFileOk: $nameFileOk";
+
+        // print_r($files);
+        foreach ($files as $nameFile) {
+            if (strpos($nameFile, $endName) > 0) {
+                $pathFileDel = $pathDir . '/'. $nameFile;
+                // echo "\ndelete: $pathFileDel";
+                unlink($pathFileDel);
+            }
+        }
+
+    }
+
+    protected static function ValidateNameFileJsAppPack(){
+        $nameFile = self::GetNameFileJsAppPack();
+        $fullPath = self::GetPathDirFilesJs().'/'. $nameFile;
+        if (file_exists($fullPath)) {
+            return $nameFile;
+        }
+
+        self::BuildFileJsAppPack($fullPath);
+        return $nameFile;
+    }
+
+
+    // ExjResource::getSrcScripts()
+    public static function getSrcScripts() {
+        $isModeDebugUI = self::IsModeDebugUI();
+        $scripts = array();
+
+        $scripts = array_merge($scripts, self::getSrcs_ExtJs($isModeDebugUI));
+        $scripts = array_merge($scripts, self::getSrcs_CompBase($isModeDebugUI));
+
+        /* test */
+        if (!$isModeDebugUI) {
+            $nameFileMinify = self::ValidateNameFileJsAppPack();
+
+            $scripts[] = self::GetURIFilesJs(). '/'. $nameFileMinify;
+
+            return $scripts; 
+        }
+
+        $pathComponets = self::getURIBaseApp()."/web";
+        $componetsApp = self::getComponetsApp($isModeDebugUI);
+
+        $dirAppWeb = self::GetDirAppWeb();
+        // echo "dirAppWeb: $dirAppWeb";
+        $filesAllJs = self::GetFilesJsDevFromDir(
+            $dirAppWeb,
+            array(
+                'common', 'controllers','data','helpers','models'
+            )
+        );
+
+        $filesHelpersJs = array();
+        $mapFilesJs = array();
+        foreach ($filesAllJs as $fileAllJs) {
+            $posSepDir = strpos($fileAllJs, '/');
+            if (!$posSepDir) {
+                continue;
+            }
+            if (strpos($fileAllJs, '.helper.js') > 0) {
+                $filesHelpersJs[] = $fileAllJs;
+                continue;
+            }
+
+            $nameDirBase = substr($fileAllJs, 0, $posSepDir);
+
+            if (!isset($mapFilesJs[$nameDirBase])) {
+                $mapFilesJs[$nameDirBase] = array();
+            }
+
+            $mapFilesJs[$nameDirBase][] = $fileAllJs;
+        }
+
+
+        foreach ($componetsApp as $componetApp) {
+            $nameComponent = $componetApp->nameComponent;
+            $subDirCmpViews = "$nameComponent/views";
+            $dirComponentFilesJs = "$dirAppWeb/$subDirCmpViews";
+
+            if (!isset($mapFilesJs[$nameComponent])) {
+                continue;
+            }
+
+            $filesJs = $mapFilesJs[$nameComponent];
+
+            foreach ($filesJs as $fileJs) {
+                // echo "\nfileJs: $fileJs";
+                $scripts[] = $pathComponets . "/" . $fileJs;
+            }
+
+            // xxxx
+             // echo "\ndirComponentFilesJs: $dirComponentFilesJs";
+
+            // $scripts[] = "$pathComponets/$subDirCmpViews/" . $componetApp->nameFileJs;
+        }
+
+        // helpers ui de archivos .js
+        if ($isModeDebugUI) {
+            // $componentsHelpers = self::GetComponentsHelpers();
+            foreach ($filesHelpersJs as $fileHelperJs) {
+                $scripts[] = $pathComponets . "/" . $fileHelperJs;
+            }
+        }
+        else{
+            $scripts[] = self::getURIBaseApp().'/'.self::GetPathRelativeHelperPublicJs();
+        }
+
+        return $scripts;
+    }
+
+    public static function WriteJavaScript() {
+        $srcScripts = ExjResource::getSrcScripts();
+        foreach ($srcScripts as $srcScript) {
+            echo ExjResource::getTemplateJavaScript($srcScript);
+        }
+    }
+
+    // ExjResource::GetUriLogoFrontEndDefault()
+    public static function GetUriLogoFrontEndDefault(){
+        return 'templates/sy_gym/images/logo_font_end.png';        
+    }
+
+    public static function GetPathLogoFrontEndDefault(){
+        return (self::GetPathBase().'/'. self::GetUriLogoFrontEndDefault());
+    }
+
+    public static function GetMapPrefixesComps() {
+        if (!empty(self::$_mapPrefixesCmp)) {
+            return self::$_mapPrefixesCmp;
+        }
+
+        self::$_mapPrefixesCmp = array();
+        $prefixes = self::PREFIXES_COMPS;
+        foreach ($prefixes as $prefix) {
+            self::$_mapPrefixesCmp[$prefix] = strlen($prefix);
+        }
+
+        return self::$_mapPrefixesCmp;
+    }
+
+    public static function InPrefixesComps($prefix) {
+        return ($prefix && in_array($prefix, self::PREFIXES_COMPS));
+    }
+
+    public static function IsModeDebugUI(){
+        return (!self::GetCfgExj()->isReleased);        
+    }
+
+    private static $_cfgExj = null;
+    public static function GetCfgExj(){
+        if (!self::$_cfgExj) {
+            if (!class_exists('CfgExj')) {
+                require_once(JPATH_BASE."/CfgExj.php");
+            }
+
+            self::$_cfgExj = new CfgExj();
+        }
+
+        return self::$_cfgExj;
+    }
+}
+
+?>
