@@ -6,6 +6,8 @@ _ide_helper.php
 composer.lock
 .phpstorm.meta.php
 .git/
+.git/*
+.gitignore
 .vscode/
 .env
 /.idea
