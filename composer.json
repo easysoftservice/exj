@@ -8,7 +8,7 @@
             "email": "byron.cordova.mora@gmail.com"
         }
     ],
-    "minimum-stability": "beta",
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.6.4"
     },
