@@ -86,8 +86,13 @@ class ExjResource {
         return $pathComponets;
     }
 
-    static function getURIBaseApp() {
+    public static function GetURIBase() {
         $uri = JURI::base();
+        return $uri;
+    }
+
+    static function getURIBaseApp() {
+        $uri = self::GetURIBase();
         $uri .= self::DIR_ROOT_APP;
 
         return $uri;
@@ -135,8 +140,8 @@ class ExjResource {
 
         $namesFiles = array();
 
-        $uriBase = self::getURIBaseApp();
-        $uriBase .= "/framework/exj/psrc/resources/js";
+        $uriBase = self::GetURIBase();
+        $uriBase .= self::GetDirRelativeResourcesJs();
 
         /*
           if ($isModeDebugUI) {
@@ -233,12 +238,35 @@ class ExjResource {
         return $alias;
     }
 
+    private static $_dirRelRes='';
+    // ExjResource::GetDirRelativeResources()
+    public static function GetDirRelativeResources() {
+        if (self::$_dirRelRes) {
+            return self::$_dirRelRes;
+        }
+
+        $dir = __DIR__;
+        $dir = str_replace('\\', '/', $dir);
+        $dir = substr($dir, strlen(self::GetPathBase())+1);
+        self::$_dirRelRes = $dir;
+
+        return self::$_dirRelRes;
+    }
+
+    public static function GetDirRelativeResourcesJs() {
+        return self::GetDirRelativeResources().'/js';
+    }
+
     // xxxx
     public static function GetCfgMinify() {
         $itemsGids = self::GetAliasGroupsUsers();
 
         $cfgPack = new stdClass();
-        $cfgPack->directoryRoot = 'app';
+        $cfgPack->directoriesRoots = array(
+            'app',
+            self::GetDirRelativeResourcesJs()
+        );
+
         $cfgPack->dirOutput = self::DIR_FILES_JS_ALL;
         $cfgPack->prefixPack = self::PREFIX_FILEJS_PACK;
 
@@ -301,8 +329,7 @@ class ExjResource {
     }
 
     public static function GetDirAppWeb(){
-        $dirProd = JPATH_BASE;
-        $dirProd = str_replace("\\", "/", $dirProd);
+        $dirProd = self::GetPathBase();
         $dirProd .= '/app/web';
         
         return $dirProd;
@@ -318,7 +345,7 @@ class ExjResource {
     }
 
     public static function GetPathFileCfgMinify(){
-        return (JPATH_BASE.'/app-minify-cfg.json');
+        return (self::GetPathBase().'/app-minify-cfg.json');
     }
 
 
@@ -919,7 +946,7 @@ class ExjResource {
     public static function GetCfgExj(){
         if (!self::$_cfgExj) {
             if (!class_exists('CfgExj')) {
-                require_once(JPATH_BASE."/CfgExj.php");
+                require_once(self::GetPathBase()."/CfgExj.php");
             }
 
             self::$_cfgExj = new CfgExj();

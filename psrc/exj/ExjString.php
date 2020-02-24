@@ -189,6 +189,42 @@ class ExjString {
     }
 
 
+    public static function ConvertBathSlash($str) {
+        if ($str && strpos($str, '\\') !== false) {
+            $str = str_replace('\\', '/', $str);
+        }
+
+        return $str;
+    }
+
+    public static function ConcatPaths($path1, $path2) {
+        $path1 = rtrim($path1);
+        $path2 = ltrim($path2);
+        if (!$path1) {
+            return $path2;
+        }
+
+        if (!$path2) {
+            return $path1;
+        }
+
+        $path1 = self::ConvertBathSlash($path1);
+        $path2 = self::ConvertBathSlash($path2);
+
+        $haveSep1 = substr($path1, -1) == '/';
+        $haveSep2 = substr($path2, 0, 1) == '/';
+
+        if ($haveSep1 || $haveSep2) {
+            $val = $path1 . $path2;
+            if ($haveSep1 && $haveSep2) {
+                $val = str_replace('//', '/', $val);
+            }
+
+            return $val;
+        }
+
+        return $path1 . '/' . $path2;
+    }
 }
 
 ?>

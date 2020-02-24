@@ -105,7 +105,6 @@ class Exj extends ExjObject {
         $this->_error->typeError = Exj::TIPO_ERROR_NINGUNO;
         $this->_sendedClient = false;
 
-        $this->_init();
 
         //	print_r($this->lastInstanceRequest());
 
@@ -277,21 +276,43 @@ class Exj extends ExjObject {
         return $href;
     }
 
-    public static function GetPathResources() {
-        $pathFramework = self::GetPathBase()."/app/framework/exj/psrc/resources/";
-        $pathFramework = str_replace('\\', '/', $pathFramework);
+    private static $_pathDirSrc='';
+    public static function GetPathDirSrc() {
+        if (!self::$_pathDirSrc) {
+            self::$_pathDirSrc = realpath(__DIR__.'/../..');
+            self::$_pathDirSrc = str_replace('\\', '/', self::$_pathDirSrc);
+        }
 
-        return $pathFramework;
+        return self::$_pathDirSrc;
     }
 
-    /**
-     * Inicializa la aplicación
-     *
-     */
-    private function _init() {
-        //session_unset();  // uncomment to clear current session
-        // $pathFramework = self::GetPathResources();
+    public static function GetPathDirSrcExj() {
+        return self::GetPathDirSrc() . '/exj';
+    }
+
+    public static function GetPathDirSrcWeb() {
+        return self::GetPathDirSrc() . '/web';
+    }
+
+    public static function GetPathResources() {
+        $path = trim(self::GetValueCfg('pathResources', ''));
         
+        if ($path) {
+            $pathReal = ExjString::ConvertBathSlash(realpath($path));
+            if ($pathReal) {
+                $path = $pathReal;
+            }
+            else {
+                ExjLog::error("CfgExj. pathResources. No existe ruta: $path");
+                $path = '';
+            }
+        }
+
+        if (!$path) {
+            $path = self::GetPathDirSrcExj().'/resources';
+        }
+
+        return $path;
     }
 
     static function GetURIBase() {

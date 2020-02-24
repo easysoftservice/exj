@@ -1702,7 +1702,9 @@ class ExjReportModel {
 	}
 	
 	private function _getFilePathImage($nameFile){
-		$pathBaseImages = Exj::GetPathResources(). 'images/report/';
+		$pathBaseImages = ExjString::ConcatPaths(
+			Exj::GetPathResources(), 'images/report/'
+		);
 		
 		return ($pathBaseImages.$nameFile);
 	}
