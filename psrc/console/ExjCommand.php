@@ -21,7 +21,9 @@ class ExjCommand extends Command {
 
         $selfCmd = $this;
         ExjEvent::On('setError', function($scope, $msgError, $typeError) use($selfCmd) {
-            $selfCmd->error(Exj::GetTextTypeError($typeError, true).'. '.$msgError);
+            $selfCmd->error(
+                ExjError::GetTextTypeError($typeError, true).'. '.$msgError
+            );
         }, Exj::class);
     }
 

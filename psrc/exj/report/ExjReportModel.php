@@ -367,7 +367,7 @@ class ExjReportModel {
 	
 	public function haveError(){
 		global $exj;
-		if ($exj->haveError()){
+		if (Exj::GetError()->haveError()){
 			return true;
 		}
 		

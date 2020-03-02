@@ -64,8 +64,7 @@ class ExjHandlerFile extends ExjObject {
     }
 
     public function haveError() {
-        global $exj;
-        return $exj->haveError();
+        return Exj::GetError()->haveError();
     }
 
     public function getPathFileIn() {
@@ -122,9 +121,8 @@ class ExjHandlerFile extends ExjObject {
         self::AddToPath($pathDir, $this->getPathDirRelative($subDir));
 
         if (!ExjFile::ValidateDir($pathDir)) {
-            global $exj;
-            $exj->setError(
-                "No se pudo crear el directorio:<br/>$pathDir", Exj::TIPO_ERROR_FILE
+            Exj::GetError()->setMsgFile(
+                "No se pudo crear el directorio:<br/>$pathDir"
             );
         }
 

@@ -225,6 +225,59 @@ class ExjString {
 
         return $path1 . '/' . $path2;
     }
+
+    public static function EndWith($str, $find) {
+        if (!$str || empty($find)) {
+            return false;
+        }
+
+        if (is_array($find)) {
+            $res = false;
+            foreach ($find as $fi) {
+                if ($fi && self::EndWith($str, $fi)) {
+                    $res = true;
+                    break;
+                }
+            }
+
+            return $res;
+        }
+
+        if ($str == $find) {
+            return true;
+        }
+
+        $pos = strrpos($str, $find);
+        if ($pos === false) {
+            return false;
+        }
+
+        return ($pos+strlen($find) == strlen($str));
+    }
+
+    public static function Content($str, $find) {
+        if (!$str || empty($find)) {
+            return false;
+        }
+
+        if (is_array($find)) {
+            $res = false;
+            foreach ($find as $itemFind) {
+                if (self::Content($str, $itemFind)) {
+                    $res = true;
+                    break;
+                }
+            }
+
+            return $res;
+        }
+
+        if ($str == $find) {
+            return true;
+        }
+
+        return (strpos($str, $find) !== false);
+    }
 }
 
 ?>

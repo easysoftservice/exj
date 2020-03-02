@@ -73,7 +73,7 @@ class ExjDatabase extends ExjObject {
         global $exj;
         $db = Exj::InstanceDatabase();
         $items = $db->loadObjectList($query);
-        if ($exj->haveError()) {
+        if (Exj::GetError()->haveError()) {
             return false;
         }
         
@@ -95,13 +95,12 @@ class ExjDatabase extends ExjObject {
      * @return object Si no se encontró null, si error false
      */
     public static function GetObjectFromQuery($query, $writeQuery = false) {
-        global $exj;
         $db = Exj::InstanceDatabase();
 
         $obj = null;
         $db->setQuery($query)->loadObject($obj);
         
-        if ($exj->haveError()) {
+        if (Exj::GetError()->haveError()) {
             return false;
         }
         
@@ -125,7 +124,8 @@ class ExjDatabase extends ExjObject {
 
         $db->setQuery($query);
         $res =  $db->loadResult();
-        if ($exj->haveError()) {
+        if (Exj::GetError()->haveError()) {
+            ExjLog::error('GetResultFromQuery', Exj::GetError());
             return false;
         }
         
@@ -211,9 +211,9 @@ class ExjDatabase extends ExjObject {
             $errorDb = $this->getErrorMsg();
             $this->_lastErrorDB = $errorDb;
 
-            $exj->logWrite($errorDb, Exj::TIPO_ERROR_DATABASE);
+            Exj::LogWrite($errorDb, ExjError::TIPO_ERROR_DATABASE);
             //	$this->writeErrorClassLn($this, $errorDb);
-            $exj->logWriteDelayed(__CLASS__);
+            Exj::LogWriteDelayed(__CLASS__);
             
             if (ExjUser::IsRolSuperAdmin()) {
             	$resError = $errorDb;
@@ -224,7 +224,8 @@ class ExjDatabase extends ExjObject {
             	Exj::PrintBackTrace("ERROR SQL. $resError");
             }
 
-            return $exj->setErrorDB($errorDb);
+            $exj->setErrorDB($errorDb);
+            return Exj::GetError()->msgError;
         }
 
         $this->_validateQueryDelayed($lastQuery);
@@ -250,18 +251,15 @@ class ExjDatabase extends ExjObject {
 
                 $strQuery .= "<br/>Consulta demoró $this->_segundosDemoraLastQuery segundos";
 
-                $exj->logWrite($strQuery, Exj::TIPO_ERROR_DELAYED);
+                Exj::LogWrite($strQuery, ExjError::TIPO_ERROR_DELAYED);
             }
         } else {
-            global $exj;
-
-            $exj->logWriteDelayed($strQuery);
+            Exj::LogWriteDelayed($strQuery);
         }
     }
 
     public function haveError() {
-        global $exj;
-        return $exj->haveError();
+        return Exj::GetError()->haveError();
     }
 
     /**

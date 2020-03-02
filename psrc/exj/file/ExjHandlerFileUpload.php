@@ -35,7 +35,7 @@ class ExjHandlerFileUpload extends ExjObject {
         }
         $this->_sizeMaxBytes = $sizeMaxBytes;
         if (!$this->_sizeMaxBytes) {
-            $this->_sizeMaxBytes = $exj->getSizeMaxUpload();
+            $this->_sizeMaxBytes = Exj::GetSizeMaxUpload();
         }
 
         $fileFromUI = $_FILES[$this->_nameFileUI];
@@ -112,8 +112,7 @@ class ExjHandlerFileUpload extends ExjObject {
     }
 
     public function haveError() {
-        global $exj;
-        return $exj->haveError();
+        return Exj::GetError()->haveError();
     }
 
     public function getErrorMsg() {

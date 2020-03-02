@@ -169,6 +169,25 @@ class ExjResource {
         return self::buildSrcs($uriBase, $namesFiles, $isModeDebugUI);
     }
 
+    // ExjResource::GetNameTemplateSys()
+    private static $_NAMETMP='';
+    public static function GetNameTemplateSys() {
+        if (self::$_NAMETMP) {
+            return self::$_NAMETMP;
+        }
+
+        $query = "SELECT tm.template FROM jos_templates_menu tm ORDER BY IF(tm.template LIKE 'sy%', 0, 1) LIMIT 1";
+
+        $db = & JFactory::getDBO();
+        $db->setQuery($query);
+        self::$_NAMETMP = trim($db->loadResult());
+        if (!self::$_NAMETMP) {
+            self::$_NAMETMP = 'sy_nofound';
+        }
+
+        return self::$_NAMETMP;
+    }
+
     // componentes desde menu, que son excluidos
     public static function GetArrayModulesMenuExcludes() {
         $query = "SELECT g.name 
@@ -378,14 +397,12 @@ class ExjResource {
         return $db->loadResultArray();
     }
 
-
-
     /**
      * Obtiene los componentes de la aplicacion
      *
      * @return unknown
      */
-    static function getComponetsApp($isModeDebugUI, $gid=0) {
+    public static function GetComponetsApp($isModeDebugUI, $gid=0) {
         $componetsApp = array();
 
         if (!$gid) {
@@ -455,11 +472,14 @@ class ExjResource {
         // $extension = strtolower($extension);
     }
 
-    static function buildFileJs($nameFile) {
+    static function buildFileJs($nameFile, $isModeDebugUI = null) {
         $extFile = '';
         $dirName = '';
         $onlyName = '';
-        $isModeDebugUI = self::IsModeDebugUI();
+
+        if ($isModeDebugUI === null) {
+            $isModeDebugUI = self::IsModeDebugUI();
+        }
 
         //	echo "<br/>nameFile: $nameFile";
         self::pathInfoFileDir($nameFile, $dirName, $onlyName, $extFile);
@@ -577,7 +597,7 @@ class ExjResource {
         $nameFileJs = strtolower($nameFileJs);
         $nameFileJs .= '.main.js';
 
-        $nameFileJs = self::buildFileJs($nameFileJs);
+        $nameFileJs = self::buildFileJs($nameFileJs, $isModeDebugUI);
 
         return $nameFileJs;
     }
@@ -629,7 +649,7 @@ class ExjResource {
         // echo "construir file: $nameFile";
         // archivos js desde permisos
         // bbbbb
-        $componetsApp = self::getComponetsApp($isModeDebugUI, $gid);
+        $componetsApp = self::GetComponetsApp($isModeDebugUI, $gid);
         // print_r($componetsApp);
 
         $filesJoins = array(
@@ -835,7 +855,7 @@ class ExjResource {
         }
 
         $pathComponets = self::getURIBaseApp()."/web";
-        $componetsApp = self::getComponetsApp($isModeDebugUI);
+        $componetsApp = self::GetComponetsApp($isModeDebugUI);
 
         $dirAppWeb = self::GetDirAppWeb();
         // echo "dirAppWeb: $dirAppWeb";
@@ -912,8 +932,8 @@ class ExjResource {
     }
 
     // ExjResource::GetUriLogoFrontEndDefault()
-    public static function GetUriLogoFrontEndDefault(){
-        return 'templates/sy_gym/images/logo_font_end.png';        
+    public static function GetUriLogoFrontEndDefault() {
+        return 'templates/'.self::GetNameTemplateSys().'/images/logo_font_end.png';
     }
 
     public static function GetPathLogoFrontEndDefault(){

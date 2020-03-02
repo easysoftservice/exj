@@ -121,11 +121,11 @@ class ExjController {
         // se verifica si hay errores
         $responseError = $this->dispatchError($responseRaw);
         if ($responseError) {
-            $exj->logWriteDelayed();
+            Exj::LogWriteDelayed();
             return $responseError;
         }
 
-        $exj->logWriteDelayed();
+        Exj::LogWriteDelayed();
 
         return $responseRaw;
     }
@@ -143,7 +143,7 @@ class ExjController {
         }
 
         global $exj;
-        if ($exj->haveError()) {
+        if (Exj::GetError()->haveError()) {
             return $response;
         }
 
@@ -299,7 +299,7 @@ class ExjController {
             $showMsgSuccess = true;
             $this->uploadFileAfter($id_file, $msgError, $showMsgSuccess, $archivoEditableModel->path_file, $nameFileUI);
             if (!$msgError) {
-                if ($exj->haveError()) {
+                if (Exj::GetError()->haveError()) {
                     $msgError = $exj->getErrorMsg();
                 }
             }
@@ -663,7 +663,7 @@ class ExjController {
     public function dispatchError($response = null) {
         global $exj;
 
-        if ($exj->getErrorExist()) {
+        if (Exj::GetError()->haveError()) {
             $exj->logWriteError();
 
             if (!$response || !($response instanceof ExjResponse)) {
@@ -1132,7 +1132,7 @@ GROUP BY
 
         $db = Exj::InstanceDatabase();
         $items = $db->loadObjectList($sql);
-        if ($exj->haveError()) {
+        if (Exj::GetError()->haveError()) {
             return $response;
         }
         // echo $db->getQuery();
@@ -1389,7 +1389,7 @@ GROUP BY
         }
 
         if ($report->beforeSave($this, $response) === false) {
-            if (!$response->haveMsgError() && !$exj->haveError()) {
+            if (!$response->haveMsgError() && !Exj::GetError()->haveError()) {
                 $response->setMsgError("Error inesperado, beforeSave no informó del error.<br/>No se pudo crear el archivo. Formato: $format");
             }
 
@@ -1401,7 +1401,7 @@ GROUP BY
         */
 
         if (!$report->save()) {
-            if (!$exj->haveError()) {
+            if (!Exj::GetError()->haveError()) {
                 $response->setMsgError("Error inesperado.<br/>No se pudo crear el archivo. Formato: $format");
             }
             return $response;

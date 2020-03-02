@@ -146,8 +146,7 @@ class ExjResponse extends ExjObject {
 		}
 
 		if ($this->status == Exj::ESTADO_ERROR) {
-			global $exj;
-			$exj->logWrite($msg, Exj::TIPO_ERROR_VALIDINGDATA);
+			Exj::LogWrite($msg, ExjError::TIPO_ERROR_VALIDINGDATA);
 		}
 		
 		return $this;
@@ -181,8 +180,7 @@ class ExjResponse extends ExjObject {
      */
     public function setMsgError($msg, $msgTitle= "ERROR") {
 		$this->setMsg($msg, $msgTitle, Exj::MSG_TIPO_ERROR);
-		global $exj;
-		$exj->logWrite($msg, Exj::TIPO_ERROR_VALIDINGDATA);
+		Exj::LogWrite($msg, ExjError::TIPO_ERROR_VALIDINGDATA);
 		
 		return $this;
     }
@@ -401,7 +399,7 @@ class ExjResponse extends ExjObject {
     		$htmlDataBuffer = '<div style="background-color: gray;color: yellow; font-size: 12px;" ><div><b>dataBuffer</b></div>' . $this->dataBuffer . '</div>';
     	}
     	
-    	if (!$this->haveMsgText() && !$exj->haveError()) {
+    	if (!$this->haveMsgText() && !Exj::GetError()->haveError()) {
     		if ($this->_includeTemplate) {
     			return $htmlDataBuffer;
     		}
@@ -442,8 +440,8 @@ class ExjResponse extends ExjObject {
     	else {
     		
     		$msgError = 'Error Desconocido';
-    		if ($exj->haveError()) {
-    			$msgError = $exj->getErrorMsg();
+    		if (Exj::GetError()->haveError()) {
+    			$msgError = Exj::GetError()->msgError;
     		}
     		
     		ExjTransferCharacters::encodeISOToUTF8($msgError);
@@ -560,7 +558,7 @@ class ExjResponse extends ExjObject {
 		}
 		
 		if ($this->dataBuffer) {
-			$exj->logWrite($this->dataBuffer, Exj::TIPO_ERROR_BUFFER);
+			Exj::LogWrite($this->dataBuffer, ExjError::TIPO_ERROR_BUFFER);
 		}
 		
 		if (!ExjUser::IsModeDebug()){

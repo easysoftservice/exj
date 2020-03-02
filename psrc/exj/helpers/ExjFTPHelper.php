@@ -257,7 +257,7 @@ class ExjFTPHelper extends ExjObject {
 		global $exj;
 		
 		$pathFileOrig = ExjHandlerFile::GetDirectoryTemp() . $nameFile;
-		if ($exj->haveError()) {
+		if (Exj::GetError()->haveError()) {
 			return false;
 		}
 		
@@ -476,12 +476,9 @@ class ExjFTPHelper extends ExjObject {
 		$this->closeConnection();
 	}
 	
-	public function isValid(){
-		global $exj;
-		
-		return (!$exj->haveError());
-	}
-	
-} // ExjFTPHelper
+	public function isValid() {
+		return (!Exj::GetError()->haveError());
+	}	
+}
 
 ?>

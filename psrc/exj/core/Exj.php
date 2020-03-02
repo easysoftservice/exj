@@ -45,19 +45,6 @@ class Exj extends ExjObject {
     const MSG_TIPO_NOTIFY = 4; // SOLO PRESENTA EL MSG Y DESAPARECE DESPUES DE 3 SEG.
     const MSG_TIPO_HTML = 6; // SE PRESENTA EL HTML EN UNA VENTANA
 
-
-    // Manejo de errores
-    const TIPO_ERROR_NINGUNO = 0;
-    const TIPO_ERROR_DESCONOCIDO = 99;
-    const TIPO_ERROR_DATABASE=1;
-    const TIPO_ERROR_FILE=3;
-    const TIPO_ERROR_USERACCESS=4;
-    const TIPO_ERROR_SERVICIOFTP=5;
-    const TIPO_ERROR_VALIDINGDATA=6;
-    const TIPO_ERROR_BUFFER=15;
-    const TIPO_ERROR_EXCEPTION=16;
-    const TIPO_ERROR_DELAYED=17;
-
     
     /**
      * (UTC-05:00) Bogotá, Lima, Quito
@@ -78,17 +65,13 @@ class Exj extends ExjObject {
     private $_verAppClient = ''; // esto es leido al iniciar
     private $_id_empresaUI = 0; // esto es leido al iniciar
     private $_sendedClient; // informa si se ha enviado en Json al cliente
-    private $_consume_time_start = 0, $_includeDataErrors = false, $_error;
+    private $_consume_time_start = 0, $_includeDataErrors = false;
     private $_request = null;
     // manejo de debug trace ---
-    private $_bufferDebug = array();
-    private $_enableDebug = false;
     private $_lastDemoraSeconds = 0;
     private $_controllerRaw = '';
     public $returnHTML = true;
-    private $_hLogData = null;
     private $_mainframe=null;
-    private $_lastInstanceRequest = null, $_lastInstanceDatabase = null;
     private static $_cfgExj = null;
     
     public function __construct(JSite  $mainframe) {
@@ -98,21 +81,19 @@ class Exj extends ExjObject {
         $this->_verAppClient = $this->getParamRequest('verApp');
         $this->_id_empresaUI = $this->getParamRequest('id_empresa', 0, false);
 
-
-        $this->_error = new stdClass();
-
-        $this->_error->msgError = '';
-        $this->_error->typeError = Exj::TIPO_ERROR_NINGUNO;
         $this->_sendedClient = false;
 
+        //	print_r(self::LastInstanceRequest());
 
-        //	print_r($this->lastInstanceRequest());
-
-        $this->_controllerRaw = $this->lastInstanceRequest()->controller;
+        $this->_controllerRaw = self::LastInstanceRequest()->controller;
     }
 
     public static function GetVersionApp() {
         return self::GetValueCfg('versionApp', '');
+    }
+
+    public static function IsReleasedApp() {
+        return self::GetValueCfg('isReleased', false);
     }
 
 
@@ -146,12 +127,14 @@ class Exj extends ExjObject {
         return self::$_cfgExj;
     }
 
-    public function lastInstanceRequest(){
-        if (!$this->_lastInstanceRequest) {
-            $this->_lastInstanceRequest = new ExjRequest();
+    private static $_lastInstanceRequest = null;
+
+    public static function LastInstanceRequest(){
+        if (!self::$_lastInstanceRequest) {
+            self::$_lastInstanceRequest = new ExjRequest();
         }
 
-        return $this->_lastInstanceRequest;
+        return self::$_lastInstanceRequest;
     }
 
     /**
@@ -165,24 +148,24 @@ class Exj extends ExjObject {
     * @return ExjRequest
     */
     public static function InstanceRequest(){
-        global $exj;
-        return $exj->lastInstanceRequest();
+        return self::LastInstanceRequest();
     }
 
-    public function lastInstanceDatabase(){
-        if (!$this->_lastInstanceDatabase) {
-            $this->_lastInstanceDatabase = new ExjDatabase();
+    private static $_lastInstanceDatabase = null;
+
+    public static function LastInstanceDatabase() {
+        if (!self::$_lastInstanceDatabase) {
+            self::$_lastInstanceDatabase = new ExjDatabase();
         }
 
-        return $this->_lastInstanceDatabase;
+        return self::$_lastInstanceDatabase;
     }
 
     /**
     * @return ExjDatabase
     */
     public static function InstanceDatabase(){
-        global $exj;
-        return $exj->lastInstanceDatabase();
+        return self::LastInstanceDatabase();
     }
 
     public static function MemoryUsage($rendering = false){
@@ -195,7 +178,7 @@ class Exj extends ExjObject {
     }
 
 
-    static function GetPathComponents() {
+    public static function GetPathComponents() {
         return self::GetPathBase() . "/components";
     }
 
@@ -211,7 +194,7 @@ class Exj extends ExjObject {
         return $this->_controllerRaw;
     }
 
-    static function GetNameFormToken() {
+    public static function GetNameFormToken() {
         $htmlToken = JHTML::_('form.token');
         $htmlToken = str_replace("<input", "", $htmlToken);
         $htmlToken = trim(str_replace("/>", "", $htmlToken));
@@ -237,53 +220,18 @@ class Exj extends ExjObject {
     	ExjObject::PrintBackTrace($message, $maxTrace);
     }
 
-    
-
-    /**
-     * Devuelve el href para la UI
-     *
-     * @param string $nameAction Nombre de la acción del controller actual
-     * @param array $paramsUrl arreglo de clave, valor
-     * @param string $nameController Nombre del controlador
-     * @param string $optionGlobal Nombre del componente
-     */
-    public function getHrefForUI($nameAction, $paramsUrl = null, $nameController = '', $optionGlobal = '') {
-        $href = self::FILE_INDEX_AJAX . "/";
-        if ($nameController) {
-            $href .= $nameController;
-        } else {
-            $href .= $this->_controllerRaw;
-        }
-        $href .= "/$nameAction";
-        if ($optionGlobal) {
-            $href .= "?option=" . $optionGlobal;
-        } else {
-            global $option;
-            $href .= "?option=" . $option;
+    private static $_pathDirProvExj='';
+    public static function GetPathDirProviderExj() {
+        if (!self::$_pathDirProvExj) {
+            self::$_pathDirProvExj = realpath(__DIR__.'/../../..');
+            self::$_pathDirProvExj = str_replace('\\', '/', self::$_pathDirProvExj);
         }
 
-        $href .= "&verApp=" . self::GetVersionApp();
-        $href .= "&no_html=1";
-
-        if ($paramsUrl) {
-            if (count($paramsUrl)) {
-                foreach ($paramsUrl as $nameParam => $value) {
-                    $href .= "&$nameParam=$value";
-                }
-            }
-        }
-
-        return $href;
+        return self::$_pathDirProvExj;
     }
 
-    private static $_pathDirSrc='';
     public static function GetPathDirSrc() {
-        if (!self::$_pathDirSrc) {
-            self::$_pathDirSrc = realpath(__DIR__.'/../..');
-            self::$_pathDirSrc = str_replace('\\', '/', self::$_pathDirSrc);
-        }
-
-        return self::$_pathDirSrc;
+        return self::GetPathDirProviderExj().'/psrc';
     }
 
     public static function GetPathDirSrcExj() {
@@ -315,7 +263,7 @@ class Exj extends ExjObject {
         return $path;
     }
 
-    static function GetURIBase() {
+    public static function GetURIBase() {
         return JURI::base();
     }
 
@@ -452,31 +400,39 @@ class Exj extends ExjObject {
         $this->setBufferDebug($textHtml);
     }
 
+    private static $_enableDebug = false;
+    private static $_bufferDebug = null;
+
     public function setBufferDebug($strDebug) {
-        if ($this->_enableDebug) {
-            $this->_bufferDebug[] = $strDebug;
+        if (self::$_enableDebug) {
+            if (!self::$_bufferDebug) {
+                self::$_bufferDebug = array();
+            }
+
+            self::$_bufferDebug[] = $strDebug;
         }
-        return $strDebug;
     }
 
     public function setEnabledDebugTrace($enable = true) {
-        $this->_enableDebug = $enable;
+        self::$_enableDebug = $enable;
         $this->setBufferDebugTimeDemora(__METHOD__, __LINE__);
     }
 
-    function getBufferDebugTrace($charSeparatorLine = '<br />') {
-        $buffers = $this->_bufferDebug;
+    public static function GetBufferDebugTrace($charSeparatorLine = '<br/>') {
+        if (empty(self::$_bufferDebug)) {
+            return '';
+        }
+
+        $buffers = self::$_bufferDebug;
         foreach ($buffers as &$buffer) {
-            // if (is_array($buffer) || is_object($buffer)) {
             $buffer = var_export($buffer, true);
-            // }
         }
 
         return implode($charSeparatorLine, $buffers);
     }
 
-    public function writeBufferDebugTrace($charSeparatorLine = '<br />') {
-        $buffer = $this->getBufferDebugTrace($charSeparatorLine);
+    public static function WriteBufferDebugTrace($charSeparatorLine = '<br/>') {
+        $buffer = self::GetBufferDebugTrace($charSeparatorLine);
         if (!$buffer) {
             return;
         }
@@ -638,7 +594,7 @@ class Exj extends ExjObject {
      */
     function setValuesObjects($objOrigen, $objDestino, $methodRef = '') {
         $fields = self::GetFieldsVarsFromObject($objDestino);
-        if ($this->getErrorExist()) {
+        if (self::GetError()->haveError()) {
             return;
         }
 
@@ -1286,320 +1242,15 @@ class Exj extends ExjObject {
         return true;
     }
 
-// autoCompleteNames
-
-    function parseStringToDateSQL($strDate, &$msgError, $formatInput = '') {
-        $dateSQL = trim($strDate . '');
-
-        if (!$dateSQL) {
-            return self::GetDate();
-        }
-
-        $dateSQL = str_replace("  ", " ", $dateSQL);
-        $isDateTime = false;
-        // 2010-06-02
-        // 2010-06-02 00:00:00
-        if (strlen($dateSQL) < 10) {
-            $msgError = "Fecha: $dateSQL no válida. Longuitud mínima 10";
-            return false;
-        }
-
-        if (strlen($dateSQL) != 10) {
-            if (strlen($dateSQL) < 19) {
-                $msgError = "Fecha y Hora: $dateSQL no válido. Longuitud mínima 19";
-                return false;
-            }
-            if (strlen($dateSQL) > 19) {
-                $dateSQL = substr($dateSQL, 0, 19);
-            }
-            $isDateTime = true;
-        }
-
-        $dateSQL = str_replace(array("/", "\\", ".", "|", "#", "_", "'", "\t"), "-", $dateSQL);
-
-        $timeStamp = strtotime($dateSQL);
-        if ($timeStamp === false) {
-            $msgError = "Fecha: $strDate no reconocida";
-            return false;
-        }
-
-        $format = "%Y-%m-%d";
-        if ($isDateTime) {
-            $format = "%Y-%m-%d %H:%M:%S";
-        }
-
-        // $dateSQL = strftime($format, $timeStamp);
-        if (!$formatInput) {
-            $formatInput = $format;
-        }
-
-        if (!$isDateTime) {
-            if (!$this->dateIsValid($dateSQL)) {
-                $msgError = "Fecha: $strDate no reconocida";
-                return false;
-            }
-            return $dateSQL;
-        }
-
-        // es fecha y hora
-        $partesDateTime = explode(" ", $dateSQL);
-        if (count($partesDateTime) != 2) {
-            $msgError = "Fecha y Hora: $dateSQL ($strDate) no reconocida";
-            return false;
-        }
-
-
-        $dateStr = $partesDateTime[0];
-        $timeStr = $partesDateTime[1];
-
-        if (!$this->dateIsValid($dateStr)) {
-            $msgError = "Fecha y Hora: $dateSQL no reconocida";
-            return false;
-        }
-
-        $timeStr = str_replace("-", ":", $timeStr);
-
-        $dateSQL = "$dateStr $timeStr";
-
-        return $dateSQL;
-    }
-
-
-    public function dateIsValid(&$txtDate) {
-        if (!$txtDate) {
-            return false;
-        }
-
-        $txtDate = trim($txtDate);
-        $nDate = strlen($txtDate);
-        if ($nDate < 8) {
-            return false;
-        }
-
-        $strTime = '';
-        if ($nDate > 10) {
-            // 2010-06-02 12:12:12
-            if ($nDate >= 19) {
-                $strTime = trim(substr($txtDate, 11, 8));
-                if (strlen($strTime) < 8) {
-                    // echo "<p>tiempo menos de 8: $strTime</p>";
-                    $strTime = '';
-                }
-            }
-            $txtDate = substr($txtDate, 0, 10);
-        }
-
-        // $month, $day, $year
-        $partes = split('[/.-]', $txtDate);
-        if ($partes == false) {
-            return false;
-        }
-
-        $nPartes = count($partes);
-        if ($nPartes < 3) {
-            return false;
-        }
-
-        $year = $partes[0];
-        $month = $partes[1];
-        $day = $partes[2];
-
-        if (!is_numeric($year) || !is_numeric($month) || !is_numeric($day)) {
-            return false;
-        }
-
-        $isYYYYmmdd = true;
-        if (strlen($year) != 4) {
-            $year = $partes[2];
-            $isYYYYmmdd = false;
-        }
-        if (strlen($year) != 4) {
-            return false;
-        }
-
-        if (!$isYYYYmmdd) {
-            $day = $partes[0];
-            $month = $partes[1];
-        }
-
-        if ($month > 12) {
-            return false;
-        }
-        if ($day > 31) {
-            return false;
-        }
-        if ($year <= 1800) {
-            return false;
-        }
-
-        $txtDate = "$year-$month-$day";
-        if ($strTime) {
-            $txtDate .= " $strTime";
-        }
-
-        return true;
-    }
-
-
-    function convertObjectListToArray($rows, $fields) {
-        $retArray = array();
-        if (!is_array($rows)) {
-            return $retArray;
-        }
-
-        foreach ($rows as $row) {
-            $rowArray = array();
-            foreach ($fields as $field) {
-                $rowArray[] = $row->$field;
-            }
-            $retArray[] = $rowArray;
-        }
-
-        return $retArray;
-    }
-
-
-    function convertArrayObjToArray($arrayObj) {
-        $data = array();
-
-        foreach ($arrayObj as $obj) {
-            $varsObj = get_object_vars($obj);
-            $itemsArray = array();
-            foreach ($varsObj as $name => $value) {
-                $itemsArray[] = $value;
-            }
-            $data[] = $itemsArray;
-        }
-
-        return $data;
-    }
-
-
-    function convertObjectListToArrayWithIndex($rows, $fields, $field_key) {
-        $retArray = array();
-        if (!is_array($rows)) {
-            return $retArray;
-        }
-
-        foreach ($rows as $row) {
-            $rowArray = array();
-            foreach ($fields as $field) {
-                $rowArray[] = $row->$field;
-            }
-
-            $valueKey = $row->$field_key;
-
-            $retArray[$valueKey][] = $rowArray; // agrupa por indice
-        }
-
-        $retArrayIndex = array();
-        $index = -1;
-        foreach ($retArray as $valueKey => $dataArray) {
-            $data = new stdClass();
-            $data->$field_key = $valueKey;
-            $data->data = $dataArray;
-
-            $retArrayIndex[++$index] = $data;
-        }
-
-        return $retArrayIndex;
-    }
-
-
-    function loadResourceFront($option, $path_file) {
-        $path = self::GetPathbaseFront($option);
-
-        require_once("$path/$path_file");
-    }
-
-    function loadPrinter() {
-        $this->loadResourceFront('com_eprinter', 'cnegocios/report.neg.php');
-        // $this->loadResourceFront('com_eprinter', 'cdata/eprinter.class.php');
-    }
-
-    function JsonEncodeSimple($topics, $printClient = true) {
-        $response = new ExjResponse();
-
-        $dataBuffer = ob_get_contents();
-        if (self::IsModeDebug()) {
-            ///retornar todo la salida para realizar debug
-            $response->dataBuffer = $dataBuffer;
-        }
-
-        /////////// para listados
-        $response->setDataTopics($topics);
-
-        //////// para objetos, datacustom
-        $response->data = $obj;
-        $response->setMsg($msg, $msgTitle, $msgType);
-
-        if ($topics == '') {
-            $response->setMsgError("No listings have served or object data. Ask the Administrator.");
-        }
-
-        // ExjTransferCharacters::encodeISOToUTF8($response);
-        ExjTransferCharacters::encodeISOToUTF8($topics);
-
-        if ($printClient) {
-            $callback = $this->getParamRequest("callback");
-            if ($callback) {
-                $response->writeWithCallback($callback);
-                return;
-            }
-
-            $response->writeOnlyTopics();
-            return;
-        }
-
-        return $response->to_json_onlyTopics();
-    }
-
-// JsonEncodeSimple
-
-    public function setError($msgError, $typeError = Exj::TIPO_ERROR_DESCONOCIDO) {
-        $this->_error->msgError = $msgError;
-        $this->_error->typeError = $typeError;
+    public function setError($msgError, $typeError = ExjError::TIPO_ERROR_DESCONOCIDO)
+    {
+        self::GetError()->setMsg($msgError)->setType($typeError);
 
         $this->setBufferDebug($msgError);
         ExjEvent::Fire(__FUNCTION__, array($msgError, $typeError), $this);
 
         return $msgError;
     }
-
-    function addArrayFromObject(&$dataArray, $obj, $fieldObj, $valueIsInt = true) {
-        $fieldObj = trim($fieldObj);
-        if (!$fieldObj) {
-            return;
-        }
-        if (isset($obj->$fieldObj)) {
-            $item = $obj->$fieldObj;
-            if ($valueIsInt) {
-                $item = intval($item);
-            }
-            if (!in_array($item, $dataArray)) {
-                $dataArray[] = $item;
-            }
-        }
-    }
-
-    function implodeSmart($partes, $glue = ",") {
-        $result = "";
-        if (!$partes) {
-            return $result;
-        }
-        if (is_array($partes)) {
-            if (count($partes) == 0) {
-                return $result;
-            }
-            $result = implode($glue, $partes);
-        } else {
-            $result = trim($partes);
-        }
-
-        return $result;
-    }
-
-// implodeSmart
 
     private $_isModeConsole = false;
 
@@ -1616,13 +1267,9 @@ class Exj extends ExjObject {
         return $exj->isModeConsole();
     }
 
-    public static function LogWriteStr($str) {
-        global $exj;
-        return $exj->logWrite($str);
-    }
-
     public function setErrorValidating($msgError) {
-        return $this->setError($msgError, Exj::TIPO_ERROR_VALIDINGDATA);
+        self::GetError()->setMsgInvalidData($msgError);
+        return $this;
     }
 
     /**
@@ -1632,11 +1279,8 @@ class Exj extends ExjObject {
      * @return bool
      */
     public function setErrorException($ex) {
-        if (is_string($ex)) {
-            return $this->setError($ex, Exj::TIPO_ERROR_EXCEPTION);
-        }
-
-        return $this->setError($ex->getMessage(), Exj::TIPO_ERROR_EXCEPTION);
+        self::GetError()->setMsgException($ex);
+        return $this;
     }
 
     /**
@@ -1647,7 +1291,7 @@ class Exj extends ExjObject {
     public function getResponseError() {
         $response = new ExjResponse();
 
-        if ($this->getErrorExist()) {
+        if (self::GetError()->haveError()) {
             $response->setMsgError($this->getErrorMsg());
         }
 
@@ -1656,26 +1300,28 @@ class Exj extends ExjObject {
 
     public function setErrorDB($msgError = '') {
         if (!$msgError) {
-            $msgError = $this->lastInstanceDatabase()->getErrorMsg();
+            $msgError = self::LastInstanceDatabase()->getErrorMsg();
         }
-        if (!$msgError) {
-            return false;
-        }
-        $this->setError($msgError, Exj::TIPO_ERROR_DATABASE);
 
-        return $msgError;
+        if ($msgError) {
+            self::GetError()->setMsgDatabase($msgError);
+        }
+        
+        return $this;
     }
 
-    public function getError() {
-        return $this->_error;
-    }
+    private static $_error = null;
 
-    public function getErrorExist() {
-        return ($this->_error->typeError != Exj::TIPO_ERROR_NINGUNO);
+    public static function GetError() {
+        if (!self::$_error) {
+            self::$_error = new ExjError();
+        }
+        
+        return self::$_error;
     }
 
     public function haveError() {
-        return $this->getErrorExist();
+        return self::GetError()->haveError();
     }
 
     /**
@@ -1683,14 +1329,18 @@ class Exj extends ExjObject {
      *
      * @return int bytes
      */
-    public function getSizeMaxUpload() {
-        return 4096000;
+    public static function GetSizeMaxUpload() {
+        $value = self::GetValueCfg('sizeMaxUpload', 0);
+        if (!$value) {
+            $value = 4096000;
+        }
+
+        return $value;
     }
 
     public function setErrorMsg($msgError) {
-
-        if (self::IsModeDebug()) {
-            $this->setError($msgError, Exj::TIPO_ERROR_VALIDINGDATA);
+        if (ExjUser::IsModeDebug()) {
+            self::GetError()->setMsgInvalidData($msgError);
         } else {
             $this->setError($msgError, Exj::MSG_TIPO_ERROR);
         }
@@ -1704,7 +1354,7 @@ class Exj extends ExjObject {
      * @return string
      */
     public function getErrorMsg() {
-        return $this->_error->msgError;
+        return self::GetError()->msgError;
     }
 
     public function getArrayInts($arrayObjs, $field) {
@@ -1717,38 +1367,9 @@ class Exj extends ExjObject {
     }
 
     public function getErrorText($returnErrorRaw = false) {
-        if (!$this->getErrorExist()) {
-            return '';
-        }
-
-        $textError = self::GetTextTypeError($this->_error->typeError, true, true);
-
-        switch ($this->_error->typeError) {
-            case Exj::TIPO_ERROR_DESCONOCIDO:
-                $textError .= ".<br/>Referencia: ";
-                break;
-
-            case Exj::TIPO_ERROR_VALIDINGDATA:
-                $textError .= "<br/>";
-                $returnErrorRaw = true;
-                break;
-        }
-
-        $textError .= '<br/>';
-
-        if ($returnErrorRaw) {
-            $textError .= $this->_error->msgError;
-        } else {
-            $textError .= "Ocurrieron errores internos en el sistema.<br/>Ha sido notificado a soporte sobre el error.";
-            if (ExjUser::IsRolSuperAdmin()) {
-                // echo $this->_error->msgError;
-                $textError .= '<br/>Referencia:<br/>' . $this->_error->msgError;
-            }
-        }
-
-        $this->parseTextResult($textError);
-
-        return $textError;
+        return $this->parseTextResult(
+            self::GetError()->rendererMsg($returnErrorRaw)
+        );
     }
 
     /**
@@ -1772,197 +1393,6 @@ class Exj extends ExjObject {
         }
 
         return false;
-    }
-
-    /**
-     * Devuelve el tipo de error
-     *
-     * @param int $valueTypeError
-     */
-    public static function GetTextTypeError($valueTypeError, $toUpper = false, $addBold = false) {
-        if (!$valueTypeError) {
-            $valueTypeError = 0;
-        }
-        $valueTypeError = intval($valueTypeError);
-
-        $textTypeError = $valueTypeError;
-        $color = '';
-        switch ($valueTypeError) {
-            case Exj::TIPO_ERROR_BUFFER:
-                $textTypeError = "Buffer";
-                break;
-            case Exj::TIPO_ERROR_DATABASE:
-                $textTypeError = "Base de datos";
-                $color = 'red';
-                break;
-
-            case Exj::TIPO_ERROR_NINGUNO:
-                $textTypeError = "Ninguno";
-                break;
-
-            case Exj::TIPO_ERROR_VALIDINGDATA:
-                $textTypeError = "Validando datos";
-                $color = 'green';
-                break;
-
-            case Exj::TIPO_ERROR_FILE:
-                $textTypeError = "Procesando Archivo";
-                break;
-
-            case Exj::TIPO_ERROR_EXCEPTION:
-                $textTypeError = "Exception";
-                $color = 'red';
-                break;
-
-            case Exj::TIPO_ERROR_DELAYED:
-                $textTypeError = "Demora";
-                $color = 'blue';
-                break;
-
-
-            case Exj::TIPO_ERROR_DESCONOCIDO:
-                $textTypeError = "Desconocido";
-                break;
-
-            case Exj::TIPO_ERROR_USERACCESS:
-                $textTypeError = "Acceso de Usuario";
-                break;
-
-            case Exj::TIPO_ERROR_SERVICIOFTP:
-                $textTypeError = "Servicio FTP";
-                break;
-
-
-            case Exj::MSG_TIPO_ERROR:
-                $textTypeError = "Error";
-                $color = 'red';
-                break;
-
-            /*
-              case Exj::MSG_TIPO_WARNING:
-              $textTypeError = "Advertencia";
-              break;
-             */
-
-            default:
-                $textTypeError = "Error tipo $valueTypeError Desconocido";
-                break;
-        }
-
-        if ($toUpper) {
-            $textTypeError = strtoupper($textTypeError);
-        }
-        if ($addBold) {
-            $textTypeError = '<b>' . $textTypeError . '</b>';
-        }
-        if ($color) {
-            $textTypeError = '<span style="color:' . $color . '">' . $textTypeError . '</span>';
-        }
-
-        return $textTypeError;
-    }
-
-    static function GetLookupTypeError($toUpper = false) {
-        $item = array();
-
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_DATABASE, $toUpper);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_EXCEPTION);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_BUFFER);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_VALIDINGDATA);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_DELAYED);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_FILE);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_SERVICIOFTP);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_USERACCESS);
-        $item[] = self::GetDataTypeError(Exj::TIPO_ERROR_NINGUNO);
-
-        return $item;
-    }
-
-    static function GetDataTypeError($typeError, $toUpper = false, $isTextHTML = false, $addBold = false) {
-        $dataTypeError = new stdClass();
-        $dataTypeError->value = intval($typeError);
-        $dataTypeError->text = $dataTypeError->value;
-        $dataTypeError->color = '';
-        $dataTypeError->isCritical = false;
-        $dataTypeError->showMsgRaw = false;
-
-        switch ($dataTypeError->value) {
-            case Exj::TIPO_ERROR_BUFFER:
-                $dataTypeError->text = "Buffer";
-                break;
-            case Exj::TIPO_ERROR_DATABASE:
-                $dataTypeError->text = "Base de datos";
-                $dataTypeError->isCritical = true;
-                break;
-
-            case Exj::TIPO_ERROR_NINGUNO:
-                $dataTypeError->text = "Ninguno";
-                break;
-
-            case Exj::TIPO_ERROR_VALIDINGDATA:
-                $dataTypeError->text = "Validando datos";
-                $dataTypeError->color = 'green';
-                $dataTypeError->showMsgRaw = true;
-                break;
-
-            case Exj::TIPO_ERROR_FILE:
-                $dataTypeError->text = "Procesando Archivo";
-                break;
-
-            case Exj::TIPO_ERROR_EXCEPTION:
-                $dataTypeError->text = "Exception";
-                $dataTypeError->isCritical = true;
-                break;
-
-            case Exj::TIPO_ERROR_DELAYED:
-                $dataTypeError->text = "Demora";
-                $dataTypeError->color = 'blue';
-                $dataTypeError->showMsgRaw = true;
-                break;
-
-            case Exj::TIPO_ERROR_DESCONOCIDO:
-                $dataTypeError->text = "Desconocido";
-                break;
-
-            case Exj::TIPO_ERROR_USERACCESS:
-                $dataTypeError->text = "Acceso de Usuario";
-                break;
-
-            case Exj::TIPO_ERROR_SERVICIOFTP:
-                $dataTypeError->text = "Servicio FTP";
-                break;
-
-
-            case Exj::MSG_TIPO_ERROR:
-                $dataTypeError->text = "Error";
-                $dataTypeError->isCritical = true;
-                break;
-
-
-            default:
-                $dataTypeError->text = "Error desconocido tipo $dataTypeError->value";
-                break;
-        }
-
-        if ($dataTypeError->isCritical) {
-            $dataTypeError->color = 'red';
-        }
-        if ($dataTypeError->showMsgRaw && !$dataTypeError->color) {
-            $dataTypeError->color = 'green';
-        }
-
-        if ($toUpper) {
-            $dataTypeError->text = strtoupper($dataTypeError->text);
-        }
-        if ($addBold && $isTextHTML) {
-            $dataTypeError->text = "<b>$dataTypeError->text</b>";
-        }
-
-        if ($isTextHTML && $dataTypeError->color) {
-            $dataTypeError->text = "<span style='color:" . $dataTypeError->color . "'>$dataTypeError->text</span>";
-        }
-
-        return $dataTypeError;
     }
 
     static function GetServerInfo($varServer, $valueDefault = null) {
@@ -1998,7 +1428,7 @@ class Exj extends ExjObject {
      *
      * @return string
      */
-    static function GetServerURLClient() {
+    public static function GetServerURLClient() {
         return self::GetServerInfo('HTTP_REFERER', '');
     }
 
@@ -2033,173 +1463,6 @@ class Exj extends ExjObject {
         return $text;
     }
 
-    function isValidTypeDep($type_dep) {
-        if (!$type_dep) {
-            return false;
-        }
-        $isValid = false;
-        switch ($type_dep) {
-            case _T_AGC_TYPE_EPAGOS:
-            case _T_AGC_TYPE_AGENTE:
-            case _T_AGC_TYPE_CORRESPONSAL:
-                $isValid = true;
-                break;
-        }
-
-        return $isValid;
-    }
-
-    function hubieronErrores($line, $method) {
-        $hayError = false;
-
-        if ($this->lastInstanceDatabase()->getErrorMsg()) {
-            $this->JsonEncode('', 0, '', "There are SQL errors", "<b>Method</b>: $method <b>Line</b>: $line<br /><b>Reference</b>: " . $this->lastInstanceDatabase()->getErrorMsg(), Exj::MSG_TIPO_ERROR);
-            $hayError = true;
-        }
-
-        return $hayError;
-    }
-
-// hubieronErrores
-
-    function JsonEncodeError() {
-        return $this->JsonEncodeMsgError('Errors occurred on the server', $this->getErrorText());
-    }
-
-// JsonEncodeError
-
-    function JsonEncodeMsgError($msgTile, $msg) {
-        return $this->JsonEncode('', 0, '', $msgTile, $msg, Exj::MSG_TIPO_ERROR);
-    }
-
-// JsonEncodeMsg
-
-    function JsonEncodeMsgNotify($msgTile, $msg) {
-        return $this->JsonEncode('', 0, '', $msgTile, $msg, Exj::MSG_TIPO_NOTIFY);
-    }
-
-// JsonEncodeMsgNotify
-
-    function JsonEncodeMsgInfo($msgTile, $msg) {
-        return $this->JsonEncode('', 0, '', $msgTile, $msg, Exj::MSG_TIPO_INFO);
-    }
-
-// JsonEncodeMsgInfo
-
-    function JsonEncodeMsgWarning($msgTile, $msg) {
-        return $this->JsonEncode('', 0, '', $msgTile, $msg, Exj::MSG_TIPO_WARNING);
-    }
-
-// JsonEncodeMsgWarning
-
-    function JsonEncodeMsgSaved($saved, $msgTile, $msg = 'Data have been successfully saved') {
-        $obj = $saved;
-        if ($saved) {
-            return $this->JsonEncode('', 0, $obj, $msgTile, $msg, Exj::MSG_TIPO_NOTIFY);
-        }
-        return $this->JsonEncode('', 0, $obj, $msgTile, $msg, Exj::MSG_TIPO_INFO);
-    }
-
-// JsonEncodeMsgSaved
-
-    function JsonEncodeObjMsgNotify($obj, $msgTile, $msg) {
-        return $this->JsonEncode('', 0, $obj, $msgTile, $msg, Exj::MSG_TIPO_NOTIFY);
-    }
-
-// JsonEncodeObjMsgNotify
-
-    function JsonEncodeObjMsgInfo($obj, $msgTile, $msg) {
-        return $this->JsonEncode('', 0, $obj, $msgTile, $msg, Exj::MSG_TIPO_INFO);
-    }
-
-// JsonEncodeObjMsgInfo
-
-    function JsonEncodeObjMsgWarning($obj, $msgTile, $msg) {
-        return $this->JsonEncode('', 0, $obj, $msgTile, $msg, Exj::MSG_TIPO_WARNING);
-    }
-
-// JsonEncodeObjMsgWarning
-
-    function JsonEncodeObjMsgError($obj, $msgTile, $msg) {
-        return $this->JsonEncode('', 0, $obj, $msgTile, $msg, Exj::MSG_TIPO_ERROR);
-    }
-
-// JsonEncodeObjMsgError
-
-    function JsonEncodeObj($obj) {
-        return $this->JsonEncode('', 0, $obj);
-    }
-
-// JsonEncodeObj
-
-    /*
-      function isModeDebug(){
-      return true;
-
-      $cfg = new JConfig();
-      return ($cfg->debug ? true: false);
-      }
-     */
-
-    function JsonEncode($topics, $totalTopics, $obj = '', $msgTitle = '', $msg = '', $msgType = Exj::MSG_TIPO_NINGUNO, $printClient = true) {
-        $response = new ExjResponse();
-
-        /////////// para listados
-        $response->setDataTopics($topics, $totalTopics);
-
-        //////// para objetos, datacustom
-        $response->data = $obj;
-
-
-        if (!$msg) {
-            $msgType = Exj::MSG_TIPO_NINGUNO;
-        }
-
-        $sendErrorToFile = false;
-        if ($msgType == Exj::MSG_TIPO_ERROR) {
-            $sendErrorToFile = true;
-            $this->logWrite($msg, Exj::MSG_TIPO_ERROR);
-        }
-
-        $dataBuffer = ob_get_contents();
-        if (self::IsModeDebug()) {
-            ///retornar todo la salida para realizar debug
-            $response->dataBuffer = $dataBuffer;
-        }
-
-        if (!$sendErrorToFile) {
-            if (strlen($dataBuffer) > 15) {
-                $sendErrorToFile = true;
-                $this->logWrite($dataBuffer, Exj::TIPO_ERROR_BUFFER);
-            }
-        }
-
-        $response->setMsg($msg, $msgTitle, $msgType);
-
-        ExjTransferCharacters::encodeISOToUTF8($response);
-
-        if ($printClient) {
-            $callback = $this->getParamRequest("callback");
-            if ($callback) {
-                $response->writeWithCallback($callback);
-                $this->_sendedClient = true;
-                return false;
-            }
-
-            $response->write();
-            $this->_sendedClient = true;
-            return true;
-        }
-
-        return $response->to_json();
-    }
-
-// JsonEncode
-
-    function JsonEncodeSendedClient() {
-        return $this->_sendedClient;
-    }
-
     
     /**
      * Convirte número entero a letras
@@ -2213,8 +1476,6 @@ class Exj extends ExjObject {
         $valueLetters = ' ' . $valueLetters . ' ';
         $valueLetters = str_replace(" Un ", ' Uno ', $valueLetters);
 
-
-
         if($toLower){
             $valueLetters = strtolower($valueLetters);
         }
@@ -2225,34 +1486,37 @@ class Exj extends ExjObject {
         return $valueLetters;
     }
 
+
+    private static $_hLogData = null;
+
     /**
      * Escribe en el archivo de logs
      *
      * @param string $text
-     * @param int $typeError Por defecto Exj::TIPO_ERROR_NINGUNO
+     * @param int $typeError Por defecto ExjError::TIPO_ERROR_NINGUNO
      */
-    public function logWrite($text, $typeError = null) {
-        if (!$this->_hLogData) {
-            $this->_hLogData = new ExjHandlerLogData();
+    public static function LogWrite($text, $typeError = null) {
+        if (!self::$_hLogData) {
+            self::$_hLogData = new ExjHandlerLogData();
         }
 
         if (!$typeError) {
-            $typeError = Exj::TIPO_ERROR_NINGUNO;
+            $typeError = ExjError::TIPO_ERROR_NINGUNO;
         }
 
-        $this->_hLogData->writeLogLn($text, $typeError, true);
+        self::$_hLogData->writeLogLn($text, $typeError, true);
         return $this;
     }
 
     public function logWriteError() {
-        if (!$this->haveError()) {
+        if (!self::GetError()->haveError()) {
             return false;
         }
 
-        $this->logWrite($this->_error->msgError, $this->_error->typeError);
+        self::LogWrite(self::GetError()->msgError, self::GetError()->typeError);
     }
 
-    public function logWriteDelayed($msgExtra = '') {
+    public static function LogWriteDelayed($msgExtra = '') {
         $delayed = self::GetServerDelayed();
         if ($delayed > self::GetValueCfg('maxDelayedLog', 3)) {
             if ($msgExtra === null) {
@@ -2263,7 +1527,7 @@ class Exj extends ExjObject {
             }
             $msgExtra .= "El proceso demoró $delayed segundos";
 
-            return $this->logWrite($msgExtra, Exj::TIPO_ERROR_DELAYED);
+            return self::LogWrite($msgExtra, ExjError::TIPO_ERROR_DELAYED);
         }
 
         return false;
@@ -2374,7 +1638,7 @@ class Exj extends ExjObject {
      *
      * @return string Ej: bvcordova
      */
-    static function GetUserUserName() {
+    public static function GetUserUserName() {
         $jUser = & JFactory::getUser();
         return $jUser->username;
     }
@@ -2569,18 +1833,8 @@ class Exj extends ExjObject {
         return $result;
     }
 
-    static function GetDS() {
+    public static function GetDS() {
         return DIRECTORY_SEPARATOR;
-    }
-
-    /**
-     * Devuelve fecha de estampado en segundos con precision de milisegundos
-     *
-     * @return float
-     */
-    function microtime_float() {
-        list($usec, $sec) = explode(" ", microtime());
-        return ((float) $usec + (float) $sec);
     }
 
     /**
@@ -2695,10 +1949,6 @@ class Exj extends ExjObject {
         return self::GetDateTime("%Y-%m");
     }
 
-    function getTime($offset_time = null) {
-        return self::GetDateTime('%H:%M:%S', $offset_time);
-    }
-
     public static function WriteLnConsole($str, $trimBoldHTML=true){
         if ($str) {
             if ($trimBoldHTML) {
@@ -2749,8 +1999,8 @@ class Exj extends ExjObject {
         return self::GetDateTime('%Y-%m-%d', $offset_time);
     }
 
-    public static function BuildURLProxy($controller, $model = 'view', $isRestFul = false, $params = null) {
-
+    public static function BuildURLProxy($controller, $model = 'view', $isRestFul = false, $params = null)
+    {
         return self::BuildURLModel($controller, $model, '', $isRestFul, $params);
     }
 
@@ -2766,12 +2016,7 @@ class Exj extends ExjObject {
      */
     public static function BuildURLModel($controller, $model = 'view', $nameComponent = '', $isRestFul = false, $params = null)
     {
-        /*
-        if (!$nameComponent) {
-            global $option;
-            $nameComponent = $option;
-        }
-        */
+        
 
         // $url = self::FILE_INDEX_AJAX. "/$controller/$model?option=$nameComponent";
         $url = self::FILE_INDEX_AJAX. "/$controller/$model?option=";
@@ -2796,22 +2041,6 @@ class Exj extends ExjObject {
         return $url;
     }
 
-    function session_ini() {
-        if (!session_id()) {
-            global $mosConfig_live_site;
-            session_name(md5($mosConfig_live_site));
-            session_start(); // not even sure if really needed here...
-        }
-    }
-
-    function str_decrypt($key, $data) {
-        return $data;
-    }
-
-    function str_encrypt($key, $data) {
-        return $data;
-    }
-
     static function FormatMoney($value) {
         $value = floatval($value);
 
@@ -2820,18 +2049,8 @@ class Exj extends ExjObject {
         return $formatted;
     }
 
-    static function GetPathComponentCurrent($optionCustom = '') {
-        if ($optionCustom) {
-            return self::GetPathComponents() . "/$optionCustom";
-        }
-
-        global $option;
-
-        return self::GetPathComponents() . "/$option";
-    }
-
     public function getActionRequest() {
-        return $this->lastInstanceRequest()->action;
+        return self::LastInstanceRequest()->action;
     }
 
     /**
@@ -2840,24 +2059,15 @@ class Exj extends ExjObject {
      * @return object
      */
     public function getParamsRequest() {
-        if (empty($this->lastInstanceRequest()->params)) {
+        if (empty(self::LastInstanceRequest()->params)) {
             return $_REQUEST;
         }
 
-        return $this->lastInstanceRequest()->params;
-    }
-
-    /**
-     * Devuelve los parámetros desde el cliente, usado para edición de entidades
-     *
-     * @return object
-     */
-    public function getDataChangedRequest() {
-        return $this->lastInstanceRequest()->paramDataChanged;
+        return self::LastInstanceRequest()->params;
     }
 
     public function setRestFulToRequest($isRestful) {
-        $this->lastInstanceRequest()->setRestFul($isRestful);
+        self::LastInstanceRequest()->setRestFul($isRestful);
         return $this;
     }
 
@@ -2894,10 +2104,10 @@ class Exj extends ExjObject {
         $this->setRestFulToRequest($restful);
 
         $this->setBufferDebugMethod(__METHOD__, "Se ha instanciado ExjRequest");
-        $this->setBufferDebug('this->lastInstanceRequest()->paramDataChanged');
-        $this->setBufferDebug($this->lastInstanceRequest()->paramDataChanged);
+        $this->setBufferDebug('LastInstanceRequest()->paramDataChanged');
+        $this->setBufferDebug(self::LastInstanceRequest()->paramDataChanged);
 
-        $responseRaw = $controller->dispatch($this->lastInstanceRequest());
+        $responseRaw = $controller->dispatch(self::LastInstanceRequest());
 
         $this->setBufferDebugTimeDemora("-> Despachado controller: $ClassController accion: " . $this->getActionRequest(), __LINE__);
 
@@ -2919,13 +2129,13 @@ class Exj extends ExjObject {
 
         $this->setBufferDebugTimeDemora(__METHOD__, __LINE__);
 
-        if ($this->lastInstanceRequest()->callback) {
-            $this->writeBufferDebugTrace();
-            $responseApi->writeWithCallback($this->lastInstanceRequest()->callback);
+        if (self::LastInstanceRequest()->callback) {
+            self::WriteBufferDebugTrace();
+            $responseApi->writeWithCallback(self::LastInstanceRequest()->callback);
             return;
         }
 
-        $this->writeBufferDebugTrace();
+        self::WriteBufferDebugTrace();
         $responseApi->write();
     }
 

@@ -534,8 +534,7 @@ class ExjImportModel {
 	}
 	
 	public function haveError(){
-		global $exj;
-		return $exj->haveError();
+		return Exj::GetError()->haveError();
 	}
 	
 	public function getParams(){

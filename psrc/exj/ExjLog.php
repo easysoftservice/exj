@@ -15,6 +15,13 @@ class ExjLog {
 			return;
 		}
 
+		/*
+		if (is_object($msg1) && $msg1 instanceof ExjError) {
+			$msg1 = $msg1->rendererMsg();
+			$msg1 = str_replace('<br/>', "\n", $msg1);
+		}
+		*/
+
 		if (is_object($msg1) || is_array($msg1)) {
 			$msg1 = print_r($msg1, true);
 		}

@@ -22,9 +22,9 @@ class ShellCommand extends ExjCommand
     {
         $this->getApplication()->setCatchExceptions(false);
 
-        $shell = new Psy\Shell($this->getCfgShell());
-
         try {
+            $shell = new Psy\Shell($this->getCfgShell());
+
             $shell->run();
         } catch (Exception $e) {
             $output->write('Excepcion: '.$e->getMessage());

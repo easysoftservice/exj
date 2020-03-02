@@ -382,11 +382,11 @@ class ExjADODB extends ExjObject {
 		global $exj;
 		
 		$msgError = $this->getErrorMsg();
-		if ($msgError && !$exj->haveError() && !ExjUser::IsModeDebug()) {
+		if ($msgError && !Exj::GetError()->haveError() && !ExjUser::IsModeDebug()) {
 			$exj->setErrorDB($msgError);
 		}
 		
-		if (!$msgError && $exj->haveError()) {
+		if (!$msgError && Exj::GetError()->haveError()) {
 			$msgError = $exj->getErrorMsg();
 		}
 		

@@ -526,7 +526,7 @@ class ExjReadOnlyModel extends ExjModels {
     	}
     	
     	global $exj;
-    	if ($exj->haveError()) {
+    	if (Exj::GetError()->haveError()) {
     		$this->addBrokenRuler($exj->getErrorMsg());
     		return false;
     	}
@@ -544,7 +544,7 @@ class ExjReadOnlyModel extends ExjModels {
     	global $exj;
     	
     	$fieldsCriteria = Exj::GetFieldsVarsFromObject($criteria);
-    	if ($exj->haveError()) {
+    	if (Exj::GetError()->haveError()) {
     		return false;
     	}
     	
@@ -571,7 +571,7 @@ class ExjReadOnlyModel extends ExjModels {
     	
     	$db = Exj::InstanceDatabase();
     	$items = $db->loadObjectList($query);
-    	if ($exj->haveError()) {
+    	if (Exj::GetError()->haveError()) {
     		return false;
     	}
     	
