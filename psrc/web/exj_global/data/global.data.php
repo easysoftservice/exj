@@ -15,7 +15,7 @@ class AppGlobalData{
     	
     	$id_user = ExjUser::GetId();
     	if (!$id_user) {
-    		$exj->setErrorValidating('Sesión de usuario expirada');
+    		Exj::SetErrorValidating('Sesión de usuario expirada');
     		return null;
     	}
     	
@@ -72,7 +72,7 @@ class AppGlobalData{
     		$email = ExjUser::GetEmail();
     		$userName = Exj::GetUserUserName();
     		$userType = Exj::GetUserUserType();
-    		$exj->setErrorValidating("Estimado Usuario <b>$userName</b> $userType, sú cuenta de usuario no está autorizada por la Empresa.<br/>Cuando se verifiquen sus datos se le notificará a sú Correo electrónico: <b>$email</b> para el acceso al Sistema " . Exj::GetTitleApp());
+    		Exj::SetErrorValidating("Estimado Usuario <b>$userName</b> $userType, sú cuenta de usuario no está autorizada por la Empresa.<br/>Cuando se verifiquen sus datos se le notificará a sú Correo electrónico: <b>$email</b> para el acceso al Sistema " . Exj::GetTitleApp());
     		return null;
     	}
 
@@ -96,14 +96,14 @@ class AppGlobalData{
     	}
     	
     	if ($dataUser->user_block) {
-    		$exj->setErrorValidating("Ha sido bloqueado, acceso denegado al sistema.");
+    		Exj::SetErrorValidating("Ha sido bloqueado, acceso denegado al sistema.");
     		return null;
     	}
     	
     	if (ExjUser::IsRolProveedor() && !ExjUser::GetIdAbogado($dataUser->id_sys_user))
     	{
     		$userName = Exj::GetUserUserName();
-    		$exj->setErrorValidating("Estimado usuario $dataUser->apes_noms_persona, tiene el rol de PROVEEDOR, pero aún su usuario: <b>$userName</b> no está enlazado con nuestra base de datos de Abogados.<br>Por favor, notifique esto a: $dataUser->nom_empresa");
+    		Exj::SetErrorValidating("Estimado usuario $dataUser->apes_noms_persona, tiene el rol de PROVEEDOR, pero aún su usuario: <b>$userName</b> no está enlazado con nuestra base de datos de Abogados.<br>Por favor, notifique esto a: $dataUser->nom_empresa");
     		return null;
     	}
     	
@@ -134,13 +134,13 @@ class AppGlobalData{
 	    	}
 	    	
 	    	if (!$dataUser->itemsOfcsRels || count($dataUser->itemsOfcsRels) == 0) {
-	    		$exj->setErrorValidating("Estimado Usuario, su cuenta de usuario no está relacionado con alguna empresa.<br/>Consulte al Administrador para sú Registro.");
+	    		Exj::SetErrorValidating("Estimado Usuario, su cuenta de usuario no está relacionado con alguna empresa.<br/>Consulte al Administrador para sú Registro.");
     			return null;
 	    	}
 	    	
 	    	if (ExjUser::IsRolCliente()) {
 	    		if (!$dataUser->id_cliente) {
-	    			$exj->setErrorValidating("Estimado usuario, su cuenta es ROL Cliente, en la empresa: $dataUser->nom_empresa no está relacionado con un Cliente en el Sistema.<br/>Consulte al Administrador para su registro.");
+	    			Exj::SetErrorValidating("Estimado usuario, su cuenta es ROL Cliente, en la empresa: $dataUser->nom_empresa no está relacionado con un Cliente en el Sistema.<br/>Consulte al Administrador para su registro.");
     				return null;
 	    		}
 	    	}
@@ -151,7 +151,7 @@ class AppGlobalData{
 	    	}
 
 	    	if (count($dataUser->idsOfcsRels) == 0) {
-	    		$exj->setErrorValidating("Estimado usuario. No tiene acceso a ninguna empresa en el sistema.<br/>Consulte con el Administrador para su registro.");
+	    		Exj::SetErrorValidating("Estimado usuario. No tiene acceso a ninguna empresa en el sistema.<br/>Consulte con el Administrador para su registro.");
     			return null;
 	    	}
 	    	
@@ -493,7 +493,7 @@ class AppGlobalData{
 			
 			$response->setMsgInfo($msgSessionOut);
 			
-			// $exj->setErrorValidating("Sesion terminada");
+			// Exj::SetErrorValidating("Sesion terminada");
 			return false;
 		}
 		
@@ -505,7 +505,7 @@ class AppGlobalData{
 			$sysUser->save();
 		}
 		else {
-			$exj->setErrorValidating("Finalizó el tiempo de sesión de usuario.");
+			Exj::SetErrorValidating("Finalizó el tiempo de sesión de usuario.");
 			return false;
 		}
 

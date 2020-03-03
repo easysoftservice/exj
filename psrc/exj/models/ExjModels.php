@@ -855,9 +855,7 @@ class ExjModels extends ExjObject {
             return true;
         }
 
-        global $exj;
-
-        $exj->setErrorValidating($this->getBrokenRules());
+        Exj::SetErrorValidating($this->getBrokenRules());
 
         return false;
     }
@@ -879,7 +877,7 @@ class ExjModels extends ExjObject {
 
         if ($addErrorToBase) {
             global $exj;
-            $exj->setErrorValidating($brokenRules);
+            Exj::SetErrorValidating($brokenRules);
         }
 
         return true;

@@ -31,17 +31,9 @@ class ExjResponse extends ExjObject {
         
         $this->dataBuffer = '';
         $this->status = Exj::ESTADO_OK; // ok
-        
-        
-		$this->Msg = new stdClass();        
-		$this->Msg->title = '';
-		$this->Msg->text = '';
-		$this->Msg->type = Exj::MSG_TIPO_NINGUNO;
-		
-		
-		$this->DataTopics = new stdClass();
-		$this->DataTopics->topics = array();
-		$this->DataTopics->total = -1;
+                
+		$this->Msg = new ExjMsgResponse();
+		$this->DataTopics = new ExjDataTopicsResponse();
 		
 		$message = '';
 		if ($data) {
@@ -98,22 +90,8 @@ class ExjResponse extends ExjObject {
     	$this->_format = $this->_FORMAT_JSON;
     }
 
-    public function addToMsg($msgExtra, $strConcat='<br>'){
-        if (!$msgExtra || empty($msgExtra)) {
-            return $this;
-        }
-
-        if (is_array($msgExtra)) {
-            $msgExtra = implode($strConcat, $msgExtra);
-        }
-
-        if ($this->Msg->text) {
-            $this->Msg->text .= $strConcat . $msgExtra;
-        }
-        else{
-            $this->Msg->text = $msgExtra;
-        }
-
+    public function addToMsg($msgExtra, $strConcat='<br>') {
+        $this->Msg->addToText($msgExtra, $strConcat);
         return $this;
     }
     
@@ -122,26 +100,12 @@ class ExjResponse extends ExjObject {
 			$msgType = Exj::MSG_TIPO_NINGUNO;
 		}
 		else {
-			global $exj;
-			$exj->parseTextResult($msg);
-		}
-		
-		if (strtoupper($msgTitle) == 'ERROR') {
-			$msgTitle = ExjText::__($msgTitle);
-		}
-		else {
-			$msgTitle = ExjText::_($msgTitle);
+			Exj::ParseTextResult($msg);
 		}
 
-        if (is_array($msg)) {
-            $msg = implode('<br>', $msg);
-        }
-    	
-		$this->Msg->title = $msgTitle;
-		$this->Msg->text = $msg;
-		$this->Msg->type = $msgType;
-		
-		if ($msgType == Exj::MSG_TIPO_ERROR) {
+		$this->Msg->setTitle($msgTitle)->setText($msg)->setType($msgType);
+
+		if ($this->Msg->isTypeError()) {
 			$this->status = Exj::ESTADO_ERROR;	
 		}
 
@@ -155,7 +119,7 @@ class ExjResponse extends ExjObject {
     public function getErrorMsg(){
     	$errorMsg = '';
 
-		if (isset($this->Msg) && $this->Msg->type == Exj::MSG_TIPO_ERROR) {
+		if ($this->Msg->isTypeError()) {
 			$errorMsg = $this->Msg->text;
 		}
     	
@@ -207,7 +171,7 @@ class ExjResponse extends ExjObject {
     }
 
     public function haveMsgText() {
-    	return ($this->Msg->text ? true: false);
+    	return $this->Msg->haveText();
     }
 
     public function haveMsgError() {
@@ -215,7 +179,7 @@ class ExjResponse extends ExjObject {
     		return false;
     	}
     	
-    	return ($this->Msg->type == Exj::MSG_TIPO_ERROR);
+    	return $this->Msg->isTypeError();
     }
     
     /**
@@ -274,46 +238,11 @@ class ExjResponse extends ExjObject {
      * @param int $total
      * @return ExjResponse
      */
-    public function setDataTopics($topics, $total= -1) {
-    	if ($total == -1) {
-    		$total = count($topics);
-    	}
-    	
-		$this->DataTopics->topics = $topics;
-		$this->DataTopics->total = $total;
+    public function setDataTopics($topics, $total= -1) {    	
+		$this->DataTopics->setItems($topics, $total);
 		
-	//	$this->_addPropOrdToTopics();
+	//	$this->DataTopics->addPropOrd();
 		return $this;
-    }
-    
-    private function _addPropOrdToTopics(){
-    	if (!$this->DataTopics->topics || !is_array($this->DataTopics->topics)) {
-    		return false;
-    	}
-    	
-    	if (count($this->DataTopics->topics) == 0) {
-    		return true;
-    	}
-    	
-    	$numOrd = 1;
-    	foreach ($this->DataTopics->topics as &$item) {
-    		if (isset($item->isData) || isset($item->isHeader)) {
-    			if (isset($item->isData) && !$item->isData) {
-    				$numOrd = 0;
-    			}
-    			elseif (isset($item->isHeader) && $item->isHeader) {
-    				$numOrd = 0;
-    			}
-    		}
-    		
-    		$item->_ord = $numOrd;
-    		$numOrd += 1;
-    	}
-    	
-    	/*
-    	echo "add prop _ord:<br/>";
-    	print_r($this->DataTopics->topics);
-    	*/
     }
     
     /**
@@ -326,11 +255,7 @@ class ExjResponse extends ExjObject {
     }
     
     public function getTotalDataTopics(){
-    	if (!isset($this->DataTopics->total) || $this->DataTopics->total < 0) {
-    		return 0;
-    	}
-    	
-    	return $this->DataTopics->total;
+    	return $this->DataTopics->getTotalNormalized();
     }
     
     public function loadTopics(&$items){
@@ -356,7 +281,7 @@ class ExjResponse extends ExjObject {
 
     
     public function verify() {
-		if ($this->Msg->type == Exj::MSG_TIPO_ERROR) {
+		if ($this->Msg->isTypeError()) {
 			$this->status = Exj::ESTADO_ERROR;
 		}
 		
@@ -392,7 +317,6 @@ class ExjResponse extends ExjObject {
     		$this->verify();	
     	}
     	
-    	global $exj;
     	$htmlDataBuffer = '';
     	
     	if ($this->dataBuffer && ExjUser::IsRolSuperAdmin() && strlen($this->dataBuffer) > 3) {
@@ -546,9 +470,7 @@ class ExjResponse extends ExjObject {
     	echo $this->to_json($verifyResponse);
     }
     
-    protected function catchBufferOut(){
-		global $exj;
-		
+    protected function catchBufferOut(){		
 		$this->dataBuffer = ob_get_contents();
 		if ($this->dataBuffer) {
 			$this->dataBuffer = trim($this->dataBuffer);
@@ -565,7 +487,7 @@ class ExjResponse extends ExjObject {
 			$this->dataBuffer = '';
 		}
 		
-		$exj->parseTextResult($this->dataBuffer);
+		Exj::ParseTextResult($this->dataBuffer);
     }
     
     public function cleanToWrite(){

@@ -527,7 +527,7 @@ class ExjReadOnlyModel extends ExjModels {
     	
     	global $exj;
     	if (Exj::GetError()->haveError()) {
-    		$this->addBrokenRuler($exj->getErrorMsg());
+    		$this->addBrokenRuler(Exj::GetErrorMsgGlobal());
     		return false;
     	}
 

@@ -88,8 +88,8 @@ class PHPPacker {
 		
 		
 		$this->addOfuscarVar('$response');
-		$this->addOfuscarVar('$total');
-		$this->addOfuscarVar('$topics');
+		// $this->addOfuscarVar('$total');
+		// $this->addOfuscarVar('$topics');
 //		$this->addOfuscarVar('$i');
 		
 		$ofsWords = $this->_ofsWords;

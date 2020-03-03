@@ -470,8 +470,7 @@ class ExjFTPHelper extends ExjObject {
 	}
 	
 	private function _setError($msgError){
-		global $exj;
-		$exj->setErrorValidating("ERROR FTP.<br/>$msgError");
+		Exj::SetErrorValidating("ERROR FTP.<br/>$msgError");
 		
 		$this->closeConnection();
 	}

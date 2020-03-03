@@ -224,7 +224,7 @@ class ExjDatabase extends ExjObject {
             	Exj::PrintBackTrace("ERROR SQL. $resError");
             }
 
-            $exj->setErrorDB($errorDb);
+            Exj::SetErrorDB($errorDb);
             return Exj::GetError()->msgError;
         }
 
@@ -416,7 +416,7 @@ class ExjDatabase extends ExjObject {
         $autoCommit = $this->loadResult("SELECT @@AUTOCOMMIT;");
         if ($this->getErrorMsg()) {
             global $exj;
-            $exj->setErrorDB($this->getErrorMsg());
+            Exj::SetErrorDB($this->getErrorMsg());
             return null;
         }
         $autoCommit = intval($autoCommit);
@@ -432,7 +432,7 @@ class ExjDatabase extends ExjObject {
         $this->query();
         if ($this->getErrorMsg()) {
             global $exj;
-            $exj->setErrorDB($this->getErrorMsg());
+            Exj::SetErrorDB($this->getErrorMsg());
             return false;
         }
 
@@ -441,8 +441,7 @@ class ExjDatabase extends ExjObject {
     }
 
     private function _setErrorToBase($msg) {
-        global $exj;
-        $exj->setErrorValidating('Base de Datos. ' . $msg);
+        Exj::SetErrorValidating('Base de Datos. ' . $msg);
     }
 
     private function _printDebugBackTrace($metodo, $strLine='') {

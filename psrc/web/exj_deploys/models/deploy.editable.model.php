@@ -147,7 +147,7 @@ class AppDeployEditableModel extends ExjEditableModel {
     	$deployFiles->buildDeployFiles();
 
     	if (Exj::GetError()->haveError()) {
-            $this->addBrokenRuler($exj->getErrorMsg());
+            $this->addBrokenRuler(Exj::GetErrorMsgGlobal());
     		return false;
     	}
     	

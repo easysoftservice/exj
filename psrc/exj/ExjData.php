@@ -16,9 +16,8 @@ class ExjData extends ExjObject {
 	
 	private $_cacheSQL = null;
 	
-	static function setError($msg){
-		global $exj;
-		$exj->setErrorDB($msg);
+	public static function setError($msg){
+		Exj::SetErrorDB($msg);
 	}
 	
 	static function RenderFechasRangos($date1, $date2){

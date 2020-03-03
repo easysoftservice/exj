@@ -178,9 +178,8 @@ class ExjSession extends ExjObject {
             }
             $obj[$name] = $value;
         } else {
-            global $exj;
 
-            $exj->setErrorValidating("Objeto de sesión no es Objeto.<br/>No se pudo guardar en sesión. name: $name el valor: $value.<br/>Clave usada: $pk");
+            Exj::SetErrorValidating("Objeto de sesión no es Objeto.<br/>No se pudo guardar en sesión. name: $name el valor: $value.<br/>Clave usada: $pk");
             return false;
         }
 

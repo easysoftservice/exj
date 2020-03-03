@@ -23,8 +23,7 @@ class ExjHandlerFileUpload extends ExjObject {
     private $_hFile = null;
 
     public function __construct($sizeMaxBytes = 0, $nameFileUI = '') {
-        global $exj;
-        $exj->returnHTML = false;
+        Exj::SetReturnHTML(false);
         if ($nameFileUI) {
             $this->_nameFileUI = $nameFileUI;
         }
@@ -116,8 +115,7 @@ class ExjHandlerFileUpload extends ExjObject {
     }
 
     public function getErrorMsg() {
-        global $exj;
-        return $exj->getErrorMsg();
+        return Exj::GetErrorMsgGlobal();
     }
 
     public static function getMaxSizeFileUpload() {
@@ -252,9 +250,8 @@ class ExjHandlerFileUpload extends ExjObject {
             $msg = "Código de error: $msg";
         }
 
-        global $exj;
         $msg = "Error Cargando archivo.<br/>$msg";
-        $exj->setErrorValidating($msg);
+        Exj::SetErrorValidating($msg);
         return $this;
     }
 

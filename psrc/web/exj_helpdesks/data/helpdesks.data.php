@@ -67,9 +67,8 @@ class AppHelpdesksData extends ExjData {
         
         $items = $db->loadObjectList($sql);
         if ($db->getErrorMsg()) {
-        	global $exj;
         	
-        	$exj->setErrorDB($db->getErrorMsg());
+        	Exj::SetErrorDB($db->getErrorMsg());
         	return null;
         }
         
@@ -119,7 +118,7 @@ class AppHelpdesksData extends ExjData {
         if ($db->getErrorMsg()) {
         	global $exj;
         	
-        	$exj->setErrorDB($db->getErrorMsg());
+        	Exj::SetErrorDB($db->getErrorMsg());
         	return null;
         }
         

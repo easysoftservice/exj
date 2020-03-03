@@ -46,7 +46,6 @@ class AppDeployModel extends ExjModel {
     }
     
     public static function CopyToPreProduction($id_deploy, &$url_release) {
-    	global $exj;
     	
     	try {
     		ExjDBTrx::Start();
@@ -56,7 +55,7 @@ class AppDeployModel extends ExjModel {
 			$release->copyDeployProduction($id_deploy);
 			
 			if (!$release->save()) {
-				$exj->setErrorValidating($release->getBrokenRules());
+				Exj::SetErrorValidating($release->getBrokenRules());
 				return false;
 			}
 			
@@ -65,7 +64,7 @@ class AppDeployModel extends ExjModel {
     		ExjDBTrx::Commit();
     	}
     	catch (Exception $ex){
-    		$exj->setErrorException($ex);
+    		Exj::SetErrorException($ex);
     		ExjDBTrx::Rollback();
     		return false;
     	}
@@ -84,9 +83,7 @@ class AppDeployModel extends ExjModel {
     	
     	
     	// Este archivo es protegido por la ley del derechos de propiedad literaria. La ingenieria inversa de este codigo se prohibe estrictamente.
-    	
-    	global $exj;
-    	
+    	    	
     	$deployFiles = new AppDeployFilesModel($deploy->version_dpy);
     	
     	

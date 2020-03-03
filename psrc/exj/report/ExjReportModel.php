@@ -361,8 +361,7 @@ class ExjReportModel {
 	}
 	
 	private function _setError($msg){
-		global $exj;
-		$exj->setErrorValidating("ERROR EN REPORTE: $this->_title<br/>$msg");
+		Exj::SetErrorValidating("ERROR EN REPORTE: $this->_title<br/>$msg");
 	}
 	
 	public function haveError(){
@@ -372,7 +371,7 @@ class ExjReportModel {
 		}
 		
 		if ($this->haveErrorResponse()) {
-			$exj->setErrorValidating($this->getResponse()->getErrorMsg());
+			Exj::SetErrorValidating($this->getResponse()->getErrorMsg());
 			return true;
 		}
 		
@@ -603,7 +602,7 @@ class ExjReportModel {
 			// echo "No existe la clase: $ClassCriteria<br/>Se va a incluir criteria nombre: $nameCriteriaModel del Componente: $nameComponentCriteria";
 			global $exj;
 			if (!class_exists($ClassCriteria)) {
-				$exj->setErrorValidating(
+				Exj::SetErrorValidating(
 					"No existe la clase criteria: $ClassCriteria<br/>Sobre-escriba el método reportSetValuesCriteria para establecer nombre de la criteria."
 				);
 				// echo "ERROR NO SE ENCONTRO CLASE CRITERIA";

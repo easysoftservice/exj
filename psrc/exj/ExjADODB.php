@@ -383,11 +383,11 @@ class ExjADODB extends ExjObject {
 		
 		$msgError = $this->getErrorMsg();
 		if ($msgError && !Exj::GetError()->haveError() && !ExjUser::IsModeDebug()) {
-			$exj->setErrorDB($msgError);
+			Exj::SetErrorDB($msgError);
 		}
 		
 		if (!$msgError && Exj::GetError()->haveError()) {
-			$msgError = $exj->getErrorMsg();
+			$msgError = Exj::GetErrorMsgGlobal();
 		}
 		
 		if (!$msgError) {
@@ -983,7 +983,7 @@ ERROR 1103x1. Ocurrió un error inténtelo más tarde. [Microsoft][ODBC Visual FoxP
 		
 		global $exj;
 		
-		$segDemoraTotal = $exj->getSecondsDemora();
+		$segDemoraTotal = Exj::GetSecondsDemora();
 
 		// para pruebas xxx
 		/*

@@ -85,7 +85,7 @@ class ExjHandlerLogData extends ExjObject {
 	public function writeLogLn($msg, $typeError='', $addTraces = true){
 		
 		if ($this->_isModeConsole === null) {
-			$this->_isModeConsole = Exj::IsAppModeConsole();
+			$this->_isModeConsole = Exj::IsModeConsole();
 		}
 		
 		if ($this->_isModeConsole) {

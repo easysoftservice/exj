@@ -506,8 +506,10 @@ class ExjDate extends ExjObject {
         if ($dateTime) {
             $stDate = $dateTime->format($FORMAT);
         } else {
-            global $exj;
-            $exj->setErrorValidating("Fecha: <b>$stDate</b> no tiene el formato esperado. Ref: " . __CLASS__);
+            Exj::SetErrorValidating(
+              "Fecha: <b>$stDate</b> no tiene el formato esperado. Ref: " . __CLASS__
+            );
+            
             static $showDebugFromDate;
             if (!isset($showDebugFromDate)) {
                 $showDebugFromDate = true;

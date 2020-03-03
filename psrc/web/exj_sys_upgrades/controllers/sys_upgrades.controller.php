@@ -111,9 +111,7 @@ class AppSysUpgradesController extends ExjController {
 	 */
 	public function create() {
 		$response = new ExjResponse();
-		global $exj;
-		$exj->returnHTML = false;
-		
+		Exj::SetReturnHTML(false);
 		
 		if (!$this->isValidParamsToCreate($response)) {
 			return $response;
@@ -152,8 +150,7 @@ class AppSysUpgradesController extends ExjController {
 	 */
 	public function update() {
 		$response = new ExjResponse();
-		global $exj;
-		$exj->returnHTML = false;
+		Exj::SetReturnHTML(false);
 		
 		if (!$this->isValidParamsToUpdate($response)) {
 			return $response;

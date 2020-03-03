@@ -77,7 +77,7 @@ class AppHldIncidentsData extends ExjData {
 		}
 		
 		if (!$criteriaIncidentes->isValid()) {
-			$exj->setErrorValidating($criteriaIncidentes->getBrokenRules());
+			Exj::SetErrorValidating($criteriaIncidentes->getBrokenRules());
 			return false;
 		}
         
@@ -202,7 +202,7 @@ class AppHldIncidentsData extends ExjData {
 	//	$dbQuery->addConditions("inc.id_empresa = $id_empresa");
 		
 		if (!$criteriaIncidentes->isValid()) {
-			$exj->setErrorValidating($criteriaIncidentes->getBrokenRules());
+			Exj::SetErrorValidating($criteriaIncidentes->getBrokenRules());
 			return false;
 		}
         

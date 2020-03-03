@@ -70,7 +70,7 @@ class ExjModel {
     public static function Destroy($id, $nameClassModelEditable, &$response, $nameComponentEditable = '', $nameModelEditable = '') {
         global $exj;
         if (!($response instanceof ExjResponse)) {
-            $exj->setErrorValidating("En el método " . __METHOD__ . " debe pasarse una instancia response de tipo ExjResponse");
+            Exj::SetErrorValidating("En el método " . __METHOD__ . " debe pasarse una instancia response de tipo ExjResponse");
             return false;
         }
 
@@ -105,7 +105,7 @@ class ExjModel {
 
         $numDel = $modelEditable->destroy($id);
         if (!$modelEditable->isValid()) {
-            $exj->setErrorValidating($modelEditable->getBrokenRules());
+            Exj::SetErrorValidating($modelEditable->getBrokenRules());
             $response->setMsgError($modelEditable->getBrokenRules());
             return false;
         }

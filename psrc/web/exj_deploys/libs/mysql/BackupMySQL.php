@@ -150,8 +150,7 @@ ORDER BY
 	}
 	
 	private function _setError($msgError){
-		global $exj;
-		$exj->setErrorValidating("$msgError");
+		Exj::SetErrorValidating("$msgError");
 	}
 
 	private function _addHeader(){

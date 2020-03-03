@@ -65,27 +65,28 @@ class Exj extends ExjObject {
     private $_verAppClient = ''; // esto es leido al iniciar
     private $_id_empresaUI = 0; // esto es leido al iniciar
     private $_sendedClient; // informa si se ha enviado en Json al cliente
-    private $_consume_time_start = 0, $_includeDataErrors = false;
+    private $_includeDataErrors = false;
     private $_request = null;
     // manejo de debug trace ---
-    private $_lastDemoraSeconds = 0;
-    private $_controllerRaw = '';
-    public $returnHTML = true;
+    
+    
     private $_mainframe=null;
     private static $_cfgExj = null;
+
+    private static $_controllerRaw = '';
     
     public function __construct(JSite  $mainframe) {
         // setlocale(LC_CTYPE, 'es_ES');
         $this->_mainframe = $mainframe;
 
-        $this->_verAppClient = $this->getParamRequest('verApp');
-        $this->_id_empresaUI = $this->getParamRequest('id_empresa', 0, false);
+        $this->_verAppClient = self::GetParamRequest('verApp');
+        $this->_id_empresaUI = self::GetParamRequest('id_empresa', 0, false);
 
         $this->_sendedClient = false;
 
         //	print_r(self::LastInstanceRequest());
 
-        $this->_controllerRaw = self::LastInstanceRequest()->controller;
+        self::$_controllerRaw = self::LastInstanceRequest()->controller;
     }
 
     public static function GetVersionApp() {
@@ -190,8 +191,8 @@ class Exj extends ExjObject {
         return self::GetPathBase() . "/app/web";
     }    
 
-    public function getControllerRaw() {
-        return $this->_controllerRaw;
+    public static function GetControllerRaw() {
+        return self::$_controllerRaw;
     }
 
     public static function GetNameFormToken() {
@@ -348,7 +349,7 @@ class Exj extends ExjObject {
 
             return true;
         }
-        else{
+        else {
             echo 'ERROR. No se encontró clase: \PhpOffice\PhpWord\PhpWord';
         }
 
@@ -358,12 +359,12 @@ class Exj extends ExjObject {
          */
     }
 
-    public function getTimeDemora($title = '') {
-        $timeApp = $this->getSecondsDemora();
+    public static function GetTimeDemora($title = '') {
+        $timeApp = self::GetSecondsDemora();
         return "$title $timeApp seg.";
     }
 
-    public function getSecondsDemora() {
+    public static function GetSecondsDemora() {
         if (!defined('_TIME_INI_APP')) {
             define( '_TIME_INI_APP', microtime(true));
         }
@@ -374,36 +375,37 @@ class Exj extends ExjObject {
         return $timeApp;
     }
 
-    function setBufferDebugTimeDemora($nameMethod, $line) {
+    private static $_lastDemoraSeconds = 0;
+    public static function SetBufferDebugTimeDemora($nameMethod, $line) {
         $title = "$nameMethod linea: $line";
 
-        $segDemora = $this->getSecondsDemora();
-        $ultimaDemora = round($segDemora - $this->_lastDemoraSeconds, 4);
-        $this->_lastDemoraSeconds = $segDemora;
+        $segDemora = self::GetSecondsDemora();
+        $ultimaDemora = round($segDemora - self::$_lastDemoraSeconds, 4);
+        self::$_lastDemoraSeconds = $segDemora;
 
-        return $this->setBufferDebug("$title. Demora: $segDemora seg. Ultima demora: $ultimaDemora seg.");
+        return self::SetBufferDebug("$title. Demora: $segDemora seg. Ultima demora: $ultimaDemora seg.");
     }
 
-    public function setBufferDebugMethod($nameMethod, $textExtra = '') {
+    public static function SetBufferDebugMethod($nameMethod, $textExtra = '') {
         $textHtml = '<div style="color:blue;">--- METODO: ' . $nameMethod . '</div>';
         if ($textExtra) {
             $textHtml .= ' --- ' . $textExtra;
         }
-        $this->setBufferDebug($textHtml);
+        self::SetBufferDebug($textHtml);
     }
 
-    public function setBufferDebugError($strDebugError, $textExtra = '') {
+    public static function SetBufferDebugError($strDebugError, $textExtra = '') {
         $textHtml = '<div style="color:red;">--- ERROR: ' . $strDebugError . '</div>';
         if ($textExtra) {
             $textHtml .= ' --- ' . $textExtra;
         }
-        $this->setBufferDebug($textHtml);
+        self::SetBufferDebug($textHtml);
     }
 
     private static $_enableDebug = false;
     private static $_bufferDebug = null;
 
-    public function setBufferDebug($strDebug) {
+    public static function SetBufferDebug($strDebug) {
         if (self::$_enableDebug) {
             if (!self::$_bufferDebug) {
                 self::$_bufferDebug = array();
@@ -413,9 +415,9 @@ class Exj extends ExjObject {
         }
     }
 
-    public function setEnabledDebugTrace($enable = true) {
+    public static function SetEnabledDebugTrace($enable = true) {
         self::$_enableDebug = $enable;
-        $this->setBufferDebugTimeDemora(__METHOD__, __LINE__);
+        self::SetBufferDebugTimeDemora(__METHOD__, __LINE__);
     }
 
     public static function GetBufferDebugTrace($charSeparatorLine = '<br/>') {
@@ -478,16 +480,17 @@ class Exj extends ExjObject {
         return self::GetDirectoryDownload() . "ftp/";
     }
 
+    private static $_consume_time_start = 0;
     // manejo de debug trace ---
-    public function consumeTimeStart() {
-        $this->_consume_time_start = $this->microtime_float();
+    public static function ConsumeTimeStart() {
+        self::$_consume_time_start = microtime(true);
     }
 
-    public function consumeSecondsServer() {
-        if ($this->_consume_time_start == 0) {
+    public static function ConsumeSecondsServer() {
+        if (self::$_consume_time_start == 0) {
             return 0;
         }
-        return round($this->microtime_float() - $this->_consume_time_start, 2);
+        return round(microtime(true) - self::$_consume_time_start, 2);
     }
 
     public static function TrasferCharsEncodeISOToUTF8(&$obj) {
@@ -507,8 +510,7 @@ class Exj extends ExjObject {
         }
 
         if (is_null($objVars)) {
-            global $exj;
-            $exj->setError("El parámetro enviado no es object o clase parametro: $obj");
+            Exj::SetError("El parámetro enviado no es object o clase parametro: $obj");
             return null;
         }
 
@@ -608,7 +610,7 @@ class Exj extends ExjObject {
                 if ($methodRef) {
                     $methodRef = " Método: $methodRef";
                 }
-                $this->setError("No está definido el campo: $field en el Objeto Origen $methodRef");
+                self::SetError("No está definido el campo: $field en el Objeto Origen $methodRef");
                 break;
             }
 
@@ -638,12 +640,13 @@ class Exj extends ExjObject {
         return false;
     }
 
-    public function getParamRequestInt($name, $def = 0) {
-        return intval($this->getParamRequest($name, $def, false));
+    public static function GetParamRequestInt($name, $def = 0) {
+        return intval(self::GetParamRequest($name, $def, false));
     }
 
-    public function getParamRequest($name, $def = null, $decodeUTFtoISO = true) {
-        $params = $this->getParamsRequest();
+    public static function GetParamRequest($name, $def = null, $decodeUTFtoISO = true)
+    {
+        $params = self::GetParamsRequest();
         if (!$params) {
             return $def;
         }
@@ -666,7 +669,7 @@ class Exj extends ExjObject {
     }
 
     function getParamRequestDecode($name, $def = null, $decodeUTFtoISO = true) {
-        $p = $this->getParamRequest($name, $def, $decodeUTFtoISO);
+        $p = self::GetParamRequest($name, $def, $decodeUTFtoISO);
         if (!$p) {
             return $p;
         }
@@ -1242,34 +1245,28 @@ class Exj extends ExjObject {
         return true;
     }
 
-    public function setError($msgError, $typeError = ExjError::TIPO_ERROR_DESCONOCIDO)
+    public static function SetError($msgError, $typeError = ExjError::TIPO_ERROR_DESCONOCIDO)
     {
         self::GetError()->setMsg($msgError)->setType($typeError);
 
-        $this->setBufferDebug($msgError);
+        self::SetBufferDebug($msgError);
         ExjEvent::Fire(__FUNCTION__, array($msgError, $typeError), $this);
 
         return $msgError;
     }
 
-    private $_isModeConsole = false;
+    private static $_isModeConsole = false;
 
-    public function fixModeConsole($enable = true) {
-        $this->_isModeConsole = $enable;
+    public static function FixModeConsole($enable = true) {
+        self::$_isModeConsole = $enable;
     }
 
-    public function isModeConsole() {
-        return $this->_isModeConsole;
+    public static function IsModeConsole() {
+        return self::$_isModeConsole;
     }
 
-    public static function IsAppModeConsole() {
-        global $exj;
-        return $exj->isModeConsole();
-    }
-
-    public function setErrorValidating($msgError) {
+    public static function SetErrorValidating($msgError) {
         self::GetError()->setMsgInvalidData($msgError);
-        return $this;
     }
 
     /**
@@ -1278,9 +1275,8 @@ class Exj extends ExjObject {
      * @param Exception $ex
      * @return bool
      */
-    public function setErrorException($ex) {
+    public static function SetErrorException($ex) {
         self::GetError()->setMsgException($ex);
-        return $this;
     }
 
     /**
@@ -1288,17 +1284,17 @@ class Exj extends ExjObject {
      *
      * @return ExjResponse instancia de la clase ExjResponse
      */
-    public function getResponseError() {
+    public static function GetResponseError() {
         $response = new ExjResponse();
 
         if (self::GetError()->haveError()) {
-            $response->setMsgError($this->getErrorMsg());
+            $response->setMsgError(self::GetErrorMsgGlobal());
         }
 
         return $response;
     }
 
-    public function setErrorDB($msgError = '') {
+    public static function SetErrorDB($msgError = '') {
         if (!$msgError) {
             $msgError = self::LastInstanceDatabase()->getErrorMsg();
         }
@@ -1306,8 +1302,6 @@ class Exj extends ExjObject {
         if ($msgError) {
             self::GetError()->setMsgDatabase($msgError);
         }
-        
-        return $this;
     }
 
     private static $_error = null;
@@ -1320,9 +1314,11 @@ class Exj extends ExjObject {
         return self::$_error;
     }
 
-    public function haveError() {
+    /*
+    public static function HaveError() {
         return self::GetError()->haveError();
     }
+    */
 
     /**
      * Devuelve el tamaño máximo permitido para subir archivos
@@ -1338,14 +1334,12 @@ class Exj extends ExjObject {
         return $value;
     }
 
-    public function setErrorMsg($msgError) {
+    public static function SetErrorMsgGlobal($msgError) {
         if (ExjUser::IsModeDebug()) {
             self::GetError()->setMsgInvalidData($msgError);
         } else {
-            $this->setError($msgError, Exj::MSG_TIPO_ERROR);
+            self::SetError($msgError, Exj::MSG_TIPO_ERROR);
         }
-
-        return $this;
     }
 
     /**
@@ -1353,21 +1347,12 @@ class Exj extends ExjObject {
      *
      * @return string
      */
-    public function getErrorMsg() {
+    public static function GetErrorMsgGlobal() {
         return self::GetError()->msgError;
     }
 
-    public function getArrayInts($arrayObjs, $field) {
-        $ints = array();
-        foreach ($arrayObjs as $item) {
-            $ints[] = intval($item->$field);
-        }
-
-        return $ints;
-    }
-
-    public function getErrorText($returnErrorRaw = false) {
-        return $this->parseTextResult(
+    public static function GetErrorText($returnErrorRaw = false) {
+        return self::ParseTextResult(
             self::GetError()->rendererMsg($returnErrorRaw)
         );
     }
@@ -1441,11 +1426,17 @@ class Exj extends ExjObject {
         return round(microtime(true) - $requestTime, 3);
     }
 
-    public function parseTextResult(&$text) {
+    private static $_returnHTML = true;
+    public static function SetReturnHTML($value = true) {
+        self::$_returnHTML = $value;
+    }
+
+    public static function ParseTextResult(&$text) {
         if (!$text) {
             return $text;
         }
-        if ($this->returnHTML) {
+
+        if (self::$_returnHTML) {
             return $text;
         }
 
@@ -1505,15 +1496,15 @@ class Exj extends ExjObject {
         }
 
         self::$_hLogData->writeLogLn($text, $typeError, true);
-        return $this;
     }
 
-    public function logWriteError() {
+    public static function LogWriteError() {
         if (!self::GetError()->haveError()) {
             return false;
         }
 
         self::LogWrite(self::GetError()->msgError, self::GetError()->typeError);
+        return true;
     }
 
     public static function LogWriteDelayed($msgExtra = '') {
@@ -1653,20 +1644,20 @@ class Exj extends ExjObject {
         return $jUser->usertype;
     }
 
-    private function _validateActionGlobal(){
-        if ($this->_controllerRaw == 'globals') {
-            $actionReq = $this->getActionRequest();
-            if ($actionReq == 'loginUser' || $actionReq == 'getDataGlobal' || $actionReq == 'changeEmpresa') {
+    private static function _validateActionGlobal(){
+        if (self::$_controllerRaw == 'globals') {
+            $actionReq = self::GetActionRequest();
+            if ($actionReq == 'loginUser' || $actionReq == 'getDataGlobal' || $actionReq == 'changeEmpresa')
+            {
                 return true;
             }
-
         }
 
         return false;
     }
 
     public function validateAccess($msg = '') {
-        if ($this->_validateActionGlobal()) {
+        if (self::_validateActionGlobal()) {
             return true;
         }
 
@@ -1732,8 +1723,9 @@ class Exj extends ExjObject {
         return self::GetPathComponents() . $option;
     }
 
-    public function getFullPathTemplateComponent($component, $nameFile = '') {
-        return $this->_getPathFront('tmpl', $component, $nameFile);
+    public static function GetFullPathTemplateComponent($component, $nameFile = '')
+    {
+        return self::_getPathFront('tmpl', $component, $nameFile);
     }
 
 
@@ -1773,7 +1765,8 @@ class Exj extends ExjObject {
         return $nameCmp;
     }
 
-    private function _getPathFront($varname, $_option = '', $nameCustom = '') {
+    private static function _getPathFront($varname, $_option = '', $nameCustom = '')
+    {
         // echo '<br/>'.__METHOD__ . " option: $_option";
 
         $result = null;
@@ -1830,6 +1823,7 @@ class Exj extends ExjObject {
             self::PrintBackTrace(__METHOD__." NO EXISTE ARCHIVO");
             // $result = $path;
         }
+
         return $result;
     }
 
@@ -1845,7 +1839,8 @@ class Exj extends ExjObject {
      * @param int $timeStamp Defecto fecha y hora actual del server
      * @return string
      */
-    static function GetDateTimeFromServer($offset_time = null, $format = '%Y-%m-%d %H:%M:%S', $timeStamp = null) {
+    public static function GetDateTimeFromServer($offset_time = null, $format = '%Y-%m-%d %H:%M:%S', $timeStamp = null)
+    {
         if ($offset_time === null) {
             $offset_time = ExjUser::GetOffsetTime();
         }
@@ -1890,7 +1885,8 @@ class Exj extends ExjObject {
      *
      * @return string
      */
-    public static function GetDateTime($format = '%Y-%m-%d %H:%M:%S', $offset_time = null, $timeStamp = null) {
+    public static function GetDateTime($format = '%Y-%m-%d %H:%M:%S', $offset_time = null, $timeStamp = null)
+    {
         if ($offset_time === null) {
             $offset_time = ExjUser::GetOffsetTime();
             //	echo "<br/>1. offset_time: $offset_time Ofc: " . ExjUser::GetNombreEmpresa();
@@ -2049,7 +2045,7 @@ class Exj extends ExjObject {
         return $formatted;
     }
 
-    public function getActionRequest() {
+    public static function GetActionRequest() {
         return self::LastInstanceRequest()->action;
     }
 
@@ -2058,7 +2054,7 @@ class Exj extends ExjObject {
      *
      * @return object
      */
-    public function getParamsRequest() {
+    public static function GetParamsRequest() {
         if (empty(self::LastInstanceRequest()->params)) {
             return $_REQUEST;
         }
@@ -2066,9 +2062,8 @@ class Exj extends ExjObject {
         return self::LastInstanceRequest()->params;
     }
 
-    public function setRestFulToRequest($isRestful) {
+    public static function SetRestFulToRequest($isRestful) {
         self::LastInstanceRequest()->setRestFul($isRestful);
-        return $this;
     }
 
     /**
@@ -2076,8 +2071,9 @@ class Exj extends ExjObject {
      * @param bool $autoLoadModel
      * @param bool $restful true para comportamiento de crud por default
      */
-    public function dispatchRestful($autoLoadModel = true, $restful = true) {
-        $this->setBufferDebugTimeDemora(__METHOD__, __LINE__);
+    public static function DispatchRestful($autoLoadModel = true, $restful = true)
+    {
+        self::SetBufferDebugTimeDemora(__METHOD__, __LINE__);
 
         /*
           Ejemplo:
@@ -2092,24 +2088,24 @@ class Exj extends ExjObject {
           Nombre de la Clase: ExjGlobalModel
          */
 
-        $nameFileController = $this->getNameFileController();
+        $nameFileController = self::GetNameFileController();
 
         // Get Controller
-        $ClassController = $this->getNameClassController();
+        $ClassController = self::GetNameClassController();
         $controller = new $ClassController();
 
-        $this->setBufferDebugTimeDemora("-> Instanciado controller: $ClassController", __LINE__);
+        self::SetBufferDebugTimeDemora("-> Instanciado controller: $ClassController", __LINE__);
 
         // Dispatch request
-        $this->setRestFulToRequest($restful);
+        self::SetRestFulToRequest($restful);
 
-        $this->setBufferDebugMethod(__METHOD__, "Se ha instanciado ExjRequest");
-        $this->setBufferDebug('LastInstanceRequest()->paramDataChanged');
-        $this->setBufferDebug(self::LastInstanceRequest()->paramDataChanged);
+        self::SetBufferDebugMethod(__METHOD__, "Se ha instanciado ExjRequest");
+        self::SetBufferDebug('LastInstanceRequest()->paramDataChanged');
+        self::SetBufferDebug(self::LastInstanceRequest()->paramDataChanged);
 
         $responseRaw = $controller->dispatch(self::LastInstanceRequest());
 
-        $this->setBufferDebugTimeDemora("-> Despachado controller: $ClassController accion: " . $this->getActionRequest(), __LINE__);
+        self::SetBufferDebugTimeDemora("-> Despachado controller: $ClassController accion: " . self::GetActionRequest(), __LINE__);
 
 
         $responseApi = $responseRaw;
@@ -2127,7 +2123,7 @@ class Exj extends ExjObject {
             $responseApi->setMsgError("El controlador: $nameFileController, debe retornar una instancia de ExjResponse.");
         }
 
-        $this->setBufferDebugTimeDemora(__METHOD__, __LINE__);
+        self::SetBufferDebugTimeDemora(__METHOD__, __LINE__);
 
         if (self::LastInstanceRequest()->callback) {
             self::WriteBufferDebugTrace();
@@ -2139,8 +2135,8 @@ class Exj extends ExjObject {
         $responseApi->write();
     }
 
-    public function getNameFileController() {
-        $nameFileController = $this->_controllerRaw;
+    public static function GetNameFileController() {
+        $nameFileController = self::$_controllerRaw;
         if (!$nameFileController) {
             $nameFileController = 'NoSePudoDeterminarControlador';
         }
@@ -2227,20 +2223,20 @@ class Exj extends ExjObject {
         return $nameClass;
     }
 
-    public function getNameClassReport($nameReportModel) {
+    public static function GetNameClassReport($nameReportModel) {
         $nameClass = self::CovertToNameClass($nameReportModel);
         $nameClass = self::GetPrefixClassApp() . $nameClass . 'ReportModel';
         return $nameClass;
     }
 
-    public function getNameClassController() {
-        $nameClassController = self::CovertToNameClass($this->_controllerRaw);
+    public static function GetNameClassController() {
+        $nameClassController = self::CovertToNameClass(self::$_controllerRaw);
         $nameClassController = self::GetPrefixClassApp() . $nameClassController . 'Controller';
         return $nameClassController;
     }
 
-    function getModelRaw() {
-        $modelRaw = $this->_controllerRaw;
+    public static function GetModelRaw() {
+        $modelRaw = self::$_controllerRaw;
         if (substr($modelRaw, -1, 1) == "s") {
             $modelRaw = substr($modelRaw, 0, -1);
         }
@@ -2248,14 +2244,14 @@ class Exj extends ExjObject {
         return $modelRaw;
     }
 
-    function getNameFileModel() {
-        $nameFileModel = $this->getModelRaw();
+    public static function GetNameFileModel() {
+        $nameFileModel = self::GetModelRaw();
         $nameFileModel .= '.model.php';
         return $nameFileModel;
     }
 
-    function getNameClassModel() {
-        $nameClassModel = ucfirst($this->getModelRaw());
+    public static function GetNameClassModel() {
+        $nameClassModel = ucfirst(self::GetModelRaw());
         $nameClassModel = self::GetPrefixClassApp() . $nameClassModel . 'Model';
         return $nameClassModel;
     }
@@ -2266,7 +2262,7 @@ class Exj extends ExjObject {
             return $offset_time;
         }
 
-        $db = Exj::InstanceDatabase();
+        $db = self::InstanceDatabase();
 
         $offset_time = $db->loadResult("SELECT offset_time FROM app_loc_paises WHERE cod_iso_cou_alfa3='$codeIsoCou'");
         if ($db->isValid()) {
@@ -2286,7 +2282,7 @@ class Exj extends ExjObject {
      * @param string $text
      * @return string
      */
-    static function StripslashesWithEndLine($text) {
+    public static function StripslashesWithEndLine($text) {
         if (!$text) {
             return $text;
         }
@@ -2384,7 +2380,8 @@ class Exj extends ExjObject {
         JRequest::checkToken() or exit('Invalid Token');
     }
 
-    static function ValidateFieldEmptyExit(&$obj, $field, $aliasField = '', $msgInvalidate = '') {
+    static function ValidateFieldEmptyExit(&$obj, $field, $aliasField = '', $msgInvalidate = '')
+    {
         $field = trim($field);
         if (!$field) {
             exit(__METHOD__ . ". No field name indicated");

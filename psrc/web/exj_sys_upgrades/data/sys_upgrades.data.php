@@ -12,11 +12,9 @@ class AppSysUpgradesData extends ExjData {
 	 *
 	 * @return array de object
 	 */
-	static function loadListSysUpgrades(&$items, &$total, $paramsCriteria=null){
-        global $exj;
-        
+	static function loadListSysUpgrades(&$items, &$total, $paramsCriteria=null)
+	{
         $dbQuery = new ExjDBQuery();
-        
         
         $dbQuery->setFields("upg.id_sys_upg, upg.file_zip_code, upg.file_zip_sql,
   upg.version_upg, upg.state_upg, upg.desc_upg, upg.id_file_code, upg.id_file_sql,
@@ -27,7 +25,6 @@ class AppSysUpgradesData extends ExjData {
         
         
         if ($paramsCriteria) {
-			// $exj->includeModelCriteria('sys_upgrades');
 			$criteriaSysUpgrades = new AppSysUpgradesCriteriaModel(false);
 			if ($criteriaSysUpgrades->bind($paramsCriteria)) {
 				$criteriaSysUpgrades->addConditionsQuery($dbQuery);
@@ -59,7 +56,6 @@ class AppSysUpgradesData extends ExjData {
 	 * @return array
 	 */
 	static function getLookupVersiones(){
-        global $exj;
         $db = Exj::InstanceDatabase();
         
         $sql = "SELECT
@@ -72,7 +68,7 @@ ORDER BY
         
         $items = $db->loadObjectList($sql);
         if ($db->getErrorMsg()) {
-        	$exj->setErrorDB($db->getErrorMsg());
+        	Exj::SetErrorDB($db->getErrorMsg());
         	return null;
         }
         

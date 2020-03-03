@@ -244,8 +244,7 @@ class ExjFooterModel extends ExjModels {
 	 */
 	public function addConditionsQuery(&$dbQuery){
 		if (!($dbQuery instanceof ExjDBQuery)) {
-			global $exj;
-			$exj->setErrorValidating("Se ha llamado a " . __FUNCTION__. ' y se ha enviado parámetro de tipo no soportado');
+			Exj::SetErrorValidating("Se ha llamado a " . __FUNCTION__. ' y se ha enviado parámetro de tipo no soportado');
 			return false;
 		}
 		

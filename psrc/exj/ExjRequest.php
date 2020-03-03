@@ -62,7 +62,9 @@ class ExjRequest {
             
             if (isset($params['dataChanged'])) {
                 // $this->paramDataChanged = Exj::JsonDecodeSlashes(stripslashes($params['dataChanged']));
-                $this->paramDataChanged = Exj::JsonDecodeSlashes(Exj::StripslashesWithEndLine($params['dataChanged']));
+                $this->paramDataChanged = Exj::JsonDecodeSlashes(
+                    Exj::StripslashesWithEndLine($params['dataChanged'])
+                );
             } else {
                 $paramsTest = Exj::JsonDecodeSlashes(Exj::StripslashesWithEndLine($raw));
                 if ($paramsTest) {
@@ -364,13 +366,13 @@ class ExjRequest {
     	}
     	
     	if (!is_object($modelList)) {
-    		$exj->setErrorValidating("ERROR AL LLAMAR A " . __METHOD__.".<br/>El 1er parámetro no es un objeto de la instancia de: ExjListModel");
+    		Exj::SetErrorValidating("ERROR AL LLAMAR A " . __METHOD__.".<br/>El 1er parámetro no es un objeto de la instancia de: ExjListModel");
     		return false;
     	}
     	
     	if (!($modelList instanceof ExjListModel)) {
     		global $exj;
-    		$exj->setErrorValidating("ERROR AL LLAMAR A " . __METHOD__.".<br/>El 1er parámetro no es una instancia de la clase: ExjListModel");
+    		Exj::SetErrorValidating("ERROR AL LLAMAR A " . __METHOD__.".<br/>El 1er parámetro no es una instancia de la clase: ExjListModel");
     		return false;
     	}
     	

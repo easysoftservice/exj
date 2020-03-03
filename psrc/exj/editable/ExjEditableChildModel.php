@@ -87,8 +87,7 @@ class ExjEditableChildModel extends ExjEditableModel {
 			$this->_refEditableParent->addBrokenRuler($this->getBrokenRules());
 		}
 		else {
-			global $exj;
-			$exj->setErrorValidating($this->getBrokenRules());
+			Exj::SetErrorValidating($this->getBrokenRules());
 		}
 		
 		return false;

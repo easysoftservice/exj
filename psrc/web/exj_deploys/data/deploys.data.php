@@ -40,7 +40,7 @@ class AppDeploysData extends ExjData {
 			}
 			
 			if (!$criteriaDeploys->isValid()) {
-				$exj->setErrorValidating($criteriaDeploys->getBrokenRules());
+				Exj::SetErrorValidating($criteriaDeploys->getBrokenRules());
 				return false;
 			}
         }

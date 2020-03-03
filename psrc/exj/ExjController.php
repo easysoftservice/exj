@@ -58,8 +58,8 @@ class ExjController {
      */
     public function dispatch($request) {
         global $exj;
-        $exj->setBufferDebugMethod(__METHOD__, 'Se envió parámetro: request:');
-        $exj->setBufferDebug($request);
+        Exj::SetBufferDebugMethod(__METHOD__, 'Se envió parámetro: request:');
+        Exj::SetBufferDebug($request);
 
 
         $this->request = $request;
@@ -114,7 +114,7 @@ class ExjController {
                 $this->_dispatchMsgResponse($responseRaw, $request);
             }
         } catch (Exception $ex) {
-            $exj->setErrorException($ex);
+            Exj::SetErrorException($ex);
         }
 
 
@@ -275,7 +275,7 @@ class ExjController {
 
         /*
           print_r($archivoEditableModel->toObject());
-          $response->setMsgError("Pruebas. " . $exj->getErrorMsg(), 'ERROR SAVING FILE');
+          $response->setMsgError("Pruebas. " . Exj::GetErrorMsgGlobal(), 'ERROR SAVING FILE');
           return $response;
          */
 
@@ -300,7 +300,7 @@ class ExjController {
             $this->uploadFileAfter($id_file, $msgError, $showMsgSuccess, $archivoEditableModel->path_file, $nameFileUI);
             if (!$msgError) {
                 if (Exj::GetError()->haveError()) {
-                    $msgError = $exj->getErrorMsg();
+                    $msgError = Exj::GetErrorMsgGlobal();
                 }
             }
             if ($msgError) {
@@ -317,7 +317,7 @@ class ExjController {
 
             ExjDBTrx::Commit();
         } catch (Exception $ex) {
-            $exj->setErrorException($ex);
+            Exj::SetErrorException($ex);
             $response->setMsgError($ex->getMessage());
             if (ExjDBTrx::IsStartedTransaction()) {
                 ExjDBTrx::Rollback();
@@ -473,7 +473,8 @@ class ExjController {
         return false;
     }
 
-    public function dispatchDocumentDownload($format, $title = 'Documento', $fileName = 'reporte') {
+    public function dispatchDocumentDownload($format, $title = 'Documento', $fileName = 'reporte')
+    {
         global $exj;
 
         Exj::IncludePHPExcel();
@@ -664,13 +665,13 @@ class ExjController {
         global $exj;
 
         if (Exj::GetError()->haveError()) {
-            $exj->logWriteError();
+            Exj::LogWriteError();
 
             if (!$response || !($response instanceof ExjResponse)) {
                 $response = new ExjResponse();
             }
 
-            $response->setMsgError($exj->getErrorText());
+            $response->setMsgError(Exj::GetErrorText());
 
             return $response;
         }
@@ -1333,7 +1334,7 @@ GROUP BY
             return $response;
         }
 
-        $ClassReport = $exj->getNameClassReport($nameReport);
+        $ClassReport = Exj::GetNameClassReport($nameReport);
 
 
         $report = new $ClassReport($format, $cols);

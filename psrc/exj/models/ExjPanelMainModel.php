@@ -99,8 +99,7 @@ class ExjPanelMainModel extends ExjModels {
 				$hMenu = $newHMenu;
 			}
 			else {
-				global $exj;
-				$exj->setErrorValidating("El método: getHandlerMenu() ha devuelto un objeto que no es instancia de ExjHelperMenu");
+				Exj::SetErrorValidating("El método: getHandlerMenu() ha devuelto un objeto que no es instancia de ExjHelperMenu");
 			}
 		}
 

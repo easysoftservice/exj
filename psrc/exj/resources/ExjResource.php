@@ -64,10 +64,10 @@ class ExjResource {
     }
 
     protected static function GetURIFilesJs() {
-        $pathComponets = JURI::base();
-        $pathComponets .= self::DIR_FILES_JS;
+        $value = JURI::base();
+        $value .= self::DIR_FILES_JS;
 
-        return $pathComponets;
+        return $value;
     }
 
     public static function GetPathBase() {
@@ -80,10 +80,10 @@ class ExjResource {
     }
 
     protected static function GetPathDirFilesJs() {
-        $pathComponets = self::GetPathBase();
-        $pathComponets .= '/' . self::DIR_FILES_JS;
+        $value = self::GetPathBase();
+        $value .= '/' . self::DIR_FILES_JS;
 
-        return $pathComponets;
+        return $value;
     }
 
     public static function GetURIBase() {
@@ -91,9 +91,16 @@ class ExjResource {
         return $uri;
     }
 
-    static function getURIBaseApp() {
+    public static function GetURIBaseApp() {
         $uri = self::GetURIBase();
         $uri .= self::DIR_ROOT_APP;
+
+        return $uri;
+    }
+
+    public static function GetURIBaseExj() {
+        $uri = self::GetURIBase();
+        $uri .= self::GetDirRelativeProvider();
 
         return $uri;
     }
@@ -272,6 +279,23 @@ class ExjResource {
         return self::$_dirRelRes;
     }
 
+    private static $_pathDirProvider='';
+    public static function GetPathDirProvider() {
+        if (!self::$_pathDirProvider) {
+            self::$_pathDirProvider = realpath(__DIR__ . '/../..');
+            self::$_pathDirProvider = str_replace('\\', '/', self::$_pathDirProvider);
+        }
+
+        return self::$_pathDirProvider;
+    }
+
+    public static function GetDirRelativeProvider() {
+        $dir = self::GetPathDirProvider();
+        $dir = substr($dir, strlen(self::GetPathBase())+1);
+
+        return $dir;
+    }
+
     public static function GetDirRelativeResourcesJs() {
         return self::GetDirRelativeResources().'/js';
     }
@@ -353,6 +377,11 @@ class ExjResource {
         
         return $dirProd;
     }
+
+    public static function GetDirExjWeb() {        
+        return (self::GetPathDirProvider() . '/web');
+    }
+
 
     // ExjResource::WriteFileCfgMinify();
     public static function WriteFileCfgMinify(){
@@ -723,6 +752,18 @@ class ExjResource {
 
     public static function GetFilesJsDevFromDir($pathDir, $excludesDirBase=null){
         $out = array();
+        if (is_array($pathDir)) {
+            foreach ($pathDir as $itemPathDir) {
+                $partes = self::GetFilesJsDevFromDir($itemPathDir, $excludesDirBase);
+                if (!empty($partes)) {
+                    $out = array_merge($out, $partes);
+                }
+            }
+
+            return $out;
+        }
+
+
         $files = scandir($pathDir);
         $out = array();
         if (empty($files)) {
@@ -756,7 +797,10 @@ class ExjResource {
                     }
                 }
 
-                $filesJsSubDir = self::GetFilesJsDevFromDir($pathFile, $excludesDirBase);
+                $filesJsSubDir = self::GetFilesJsDevFromDir(
+                    $pathFile, $excludesDirBase
+                );
+
                 if (!empty($filesJsSubDir)) {
                     foreach ($filesJsSubDir as $fileJsSubDir) {
                         $out[] = $nameFile . '/' . $fileJsSubDir;
@@ -837,15 +881,14 @@ class ExjResource {
     }
 
 
-    // ExjResource::getSrcScripts()
-    public static function getSrcScripts() {
+    // ExjResource::GetSrcScripts()
+    public static function GetSrcScripts() {
         $isModeDebugUI = self::IsModeDebugUI();
         $scripts = array();
 
         $scripts = array_merge($scripts, self::getSrcs_ExtJs($isModeDebugUI));
         $scripts = array_merge($scripts, self::getSrcs_CompBase($isModeDebugUI));
 
-        /* test */
         if (!$isModeDebugUI) {
             $nameFileMinify = self::ValidateNameFileJsAppPack();
 
@@ -854,44 +897,67 @@ class ExjResource {
             return $scripts; 
         }
 
-        $pathComponets = self::getURIBaseApp()."/web";
-        $componetsApp = self::GetComponetsApp($isModeDebugUI);
-
-        $dirAppWeb = self::GetDirAppWeb();
-        // echo "dirAppWeb: $dirAppWeb";
-        $filesAllJs = self::GetFilesJsDevFromDir(
-            $dirAppWeb,
+        /* Modo debug */
+        
+        $filesJsExj = self::GetFilesJsDevFromDir(
+            self::GetDirExjWeb(),
             array(
                 'common', 'controllers','data','helpers','models'
             )
         );
 
+        $filesJsApp = self::GetFilesJsDevFromDir(
+            self::GetDirAppWeb(),
+            array(
+                'common', 'controllers','data','helpers','models'
+            )
+        );
+
+        $itemsScripts = array();
+        $itemsScripts[] = array(
+            'uri' => self::GetURIBaseExj()."/web",
+            'filesJs' => $filesJsExj
+        );
+
+        $itemsScripts[] = array(
+            'uri' => self::GetURIBaseApp()."/web",
+            'filesJs' => $filesJsApp
+        );
+        
         $filesHelpersJs = array();
         $mapFilesJs = array();
-        foreach ($filesAllJs as $fileAllJs) {
-            $posSepDir = strpos($fileAllJs, '/');
-            if (!$posSepDir) {
-                continue;
-            }
-            if (strpos($fileAllJs, '.helper.js') > 0) {
-                $filesHelpersJs[] = $fileAllJs;
-                continue;
-            }
 
-            $nameDirBase = substr($fileAllJs, 0, $posSepDir);
+        foreach ($itemsScripts as $itemScript) {
+            $uri = $itemScript['uri'];
+            $filesJs = $itemScript['filesJs'];
 
-            if (!isset($mapFilesJs[$nameDirBase])) {
-                $mapFilesJs[$nameDirBase] = array();
+            foreach ($filesJs as $fileJs) {
+                $posSepDir = strpos($fileJs, '/');
+                if (!$posSepDir) {
+                    continue;
+                }
+
+                $uriFileJs = $uri . '/' . $fileJs;
+
+                if (strpos($fileJs, '.helper.js') > 0) {
+                    $filesHelpersJs[] = $uriFileJs;
+                    continue;
+                }
+
+                $nameDirBase = substr($fileJs, 0, $posSepDir);
+
+                if (!isset($mapFilesJs[$nameDirBase])) {
+                    $mapFilesJs[$nameDirBase] = array();
+                }
+
+                $mapFilesJs[$nameDirBase][] = $uriFileJs;
             }
-
-            $mapFilesJs[$nameDirBase][] = $fileAllJs;
         }
 
-
+        $componetsApp = self::GetComponetsApp($isModeDebugUI);
+        
         foreach ($componetsApp as $componetApp) {
             $nameComponent = $componetApp->nameComponent;
-            $subDirCmpViews = "$nameComponent/views";
-            $dirComponentFilesJs = "$dirAppWeb/$subDirCmpViews";
 
             if (!isset($mapFilesJs[$nameComponent])) {
                 continue;
@@ -899,35 +965,25 @@ class ExjResource {
 
             $filesJs = $mapFilesJs[$nameComponent];
 
-            foreach ($filesJs as $fileJs) {
-                // echo "\nfileJs: $fileJs";
-                $scripts[] = $pathComponets . "/" . $fileJs;
+            foreach ($filesJs as $uriFileJs) {
+                // echo "\nuriFileJs: $uriFileJs";
+                $scripts[] = $uriFileJs;
             }
-
-            // xxxx
-             // echo "\ndirComponentFilesJs: $dirComponentFilesJs";
-
-            // $scripts[] = "$pathComponets/$subDirCmpViews/" . $componetApp->nameFileJs;
         }
 
         // helpers ui de archivos .js
-        if ($isModeDebugUI) {
-            // $componentsHelpers = self::GetComponentsHelpers();
-            foreach ($filesHelpersJs as $fileHelperJs) {
-                $scripts[] = $pathComponets . "/" . $fileHelperJs;
-            }
-        }
-        else{
-            $scripts[] = self::getURIBaseApp().'/'.self::GetPathRelativeHelperPublicJs();
+        foreach ($filesHelpersJs as $uriFileJs) {
+            $scripts[] = $uriFileJs;
         }
 
         return $scripts;
     }
 
+    // Inicio
     public static function WriteJavaScript() {
-        $srcScripts = ExjResource::getSrcScripts();
+        $srcScripts = self::GetSrcScripts();
         foreach ($srcScripts as $srcScript) {
-            echo ExjResource::getTemplateJavaScript($srcScript);
+            echo self::getTemplateJavaScript($srcScript);
         }
     }
 

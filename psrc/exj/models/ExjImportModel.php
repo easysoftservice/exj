@@ -528,9 +528,8 @@ class ExjImportModel {
 		return $value;
 	}
 	
-	private function _setError($msg){
-		global $exj;
-		$exj->setErrorValidating("ERROR IN IMPORT: $this->title<br/>$msg");
+	private function _setError($msg) {
+		Exj::SetErrorValidating("ERROR IN IMPORT: $this->title<br/>$msg");
 	}
 	
 	public function haveError(){

@@ -168,8 +168,7 @@ class ExjHandlerFile extends ExjObject {
         $dirTmp = Exj::GetPathDirStorageFiles() . "/tmp/" . self::GetFolderUserEncode();
 
         if (!ExjFile::ValidateDir($dirTmp)) {
-            global $exj;
-            $exj->setErrorValidating("No se pudo crear el directorio temporal en el servidor.<br/>dirTmp: $dirTmp");
+            Exj::SetErrorValidating("No se pudo crear el directorio temporal en el servidor.<br/>dirTmp: $dirTmp");
         }
 
         return $dirTmp . '/';

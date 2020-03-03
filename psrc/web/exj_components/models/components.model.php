@@ -279,7 +279,8 @@ class AppComponentsModel extends ExjModel {
     }
     
     
-    public static function GetFileGenerated($nameTable, $nameFileTpl, $nameComp, $plural_com, $singular_com, $itemsColsTable){
+    public static function GetFileGenerated($nameTable, $nameFileTpl, $nameComp, $plural_com, $singular_com, $itemsColsTable)
+    {
     	$fileGenerated = new stdClass();
     	$fileGenerated->msgError = '';
     	$fileGenerated->pathFileComp = '';
@@ -330,7 +331,7 @@ class AppComponentsModel extends ExjModel {
     		return $fileGenerated;
     	}
     	
-    	$pathFile = Exj::GetPathAppWeb() . "/exj_component_tpls/" . $pathRelativeFile;
+    	$pathFile = Exj::GetPathDirSrcWeb() . "/exj_component_tpls/" . $pathRelativeFile;
     	if (!file_exists($pathFile)) {
     		$fileGenerated->msgError = "No existe archivo: " . $pathRelativeFile;
             Exj::PrintBackTrace(__METHOD__." NO EXISTE ARCHIVO");

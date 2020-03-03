@@ -8,7 +8,6 @@ defined( '_JEXEC' ) or die( 'Acceso Restringido' );
 class AppSysUpgradeModel extends ExjModel {
 	
     public static function saveSysUpgrade($id, $dataChanged, $paramData) {
-    	global $exj;
     	
     	try {
     		ExjDBTrx::Start();
@@ -28,7 +27,7 @@ class AppSysUpgradeModel extends ExjModel {
     		ExjDBTrx::Commit();
     	}
     	catch (Exception $ex){
-    		$exj->setErrorException($ex);
+    		Exj::SetErrorException($ex);
     		ExjDBTrx::Rollback();
     	}
 		

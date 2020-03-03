@@ -169,7 +169,7 @@ class AppGlobalDataAccessUser extends ExjObject {
     	
     	$gid = Exj::GetUserGID();
     	if (!$gid) {
-    		$exj->setErrorDB("Usuario no está logueado");
+    		Exj::SetErrorDB("Usuario no está logueado");
     		return null;
     	}
     	

@@ -89,8 +89,7 @@ class ExjObject {
     protected function setErrorMsgToBase($errorMsg) {
         $this->setErrorMsg($errorMsg);
         if ($errorMsg) {
-            global $exj;
-            $exj->setErrorValidating($errorMsg);
+            Exj::SetErrorValidating($errorMsg);
         }
     }
 
