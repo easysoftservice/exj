@@ -238,169 +238,34 @@ Ext.onReady(function(){
                 /*
                     config.callBackTools
                 */
-                
-                var u = Exj.getUsuario();
-                
-                var htmlInfoUsr = '<div id="bubble-markup" class="headerTitle">';
-                
-                // htmlInfoUsr += '<div class="exj-title-main">'+Exj.Global.infoUser.name_company+'</div>';
-                
-                if(!Exj.Global.itemsDisplay){
-                    htmlInfoUsr += '<p><b>'+Exj.Global.infoUser.usertype.toUpperCase() + ':</b> '+Exj.Global.infoUser.apes_noms_persona + ' - '+ Exj.Global.infoUser.nro_doc_persona;
-                    if(Exj.isModeDebug){
-                        htmlInfoUsr += ' <div style="color:red">(<b>MODO DEBUG ESTA ACTIVO</b>)</div>';
-                    }
-                    
-                    htmlInfoUsr += '</p>';
-
-                	var _htmlInfoEmpresa = '';
-                	// aaa 
-                	var attrsExtrasHTML = '';
-                	if(Exj.Global.infoUser.usertype == 'CLIENTE'){
-                		attrsExtrasHTML = 'style="display:none;"';
-                	}
-                	
-                	_htmlInfoEmpresa += '<div ' + attrsExtrasHTML + '>';
-                	
-                	if(Exj.Global.infoUser.is_main_empresa == 1){
-                		_htmlInfoEmpresa += '<b>'+'<span id="exjInfoMain_prefixOfc">'+Exj.Idioma('EMPRESA') + '</span>' +':</b>';
-                	}
-                	else{
-                		_htmlInfoEmpresa += '<b>'+'<span id="exjInfoMain_prefixOfc">'+Exj.Idioma('EMPRESA') + '</span>' +':</b>';
-                	}
-                	
-                	_htmlInfoEmpresa += ' <span id="exjInfoMain_nom_empresa">'+Exj.Global.infoUser.nom_empresa+'</span>';
-                	
-                	_htmlInfoEmpresa += '</div>';
-                	
-                	htmlInfoUsr += _htmlInfoEmpresa;
-                }
-
-                if(Exj.Global.infoUser.id_guser != 0){
-                	if(!Exj.Global.itemsDisplay){
-                		/* var htmlInfoNameCiu = '<span id="exjInfoMain_name_ciu_com">'+Exj.Global.infoUser.name_ciu_com+'</span>'; */
-                		var htmlInfoNameCiu = '<span id="exjInfoMain_name_ciu_com">'+Exj.Global.infoUser.name_city_prs+'</span>';
-		                if(Exj.Global.infoUser.is_capital == 1){
-			                htmlInfoUsr += '<p><b>CAPITAL:</b> '+htmlInfoNameCiu+'</p>';
-		                }
-		                else{
-			                htmlInfoUsr += '<p><b>'+Exj.Idioma('CIUDAD')+':</b> '+htmlInfoNameCiu;
-			                htmlInfoUsr += ' <b>'+'<span id="exjInfoMain_name_sit_main">'+Exj.Idioma(Exj.Global.infoUser.name_sit_main.toUpperCase())+'</span>'+'</b>: '+ '<span id="exjInfoMain_name_state">'+ Exj.Global.infoUser.name_state_prs+'</span>';
-			                htmlInfoUsr += '</p>';
-		                }
-                	}
-
-	                if(Exj.Global.infoUser.nam_loc_custom != null){
-		                htmlInfoUsr += '<p>'+Exj.Global.infoUser.nam_custom_group_single+': '+Exj.Global.infoUser.nam_loc_custom+'</p>';
-	                }
-
-                    /*
-                    if (Exj.Global.emisor) {
-                        htmlInfoUsr += '<p>';
-                        htmlInfoUsr += '<b>EMISOR</b>: '+ Exj.Global.emisor.ruc+' Punto de emisión: '+Exj.Global.emisor.cod_establecimieto+'-'+Exj.Global.emisor.cod_punto_emision;
-                        htmlInfoUsr += '</p>';
-                    }
-                    */
-					
-                    /*
-	                htmlInfoUsr += '<p><b>'+Exj.Idioma('LENGUAJE')+'</b>: '+Exj.Global.infoUser.name_lang+'</p>';
-	                if(Exj.Global.infoUser.usertype == "Super Administrator"){
-	                	htmlInfoUsr += '<p><b>Navegador</b>: '+ navigator.userAgent+'</p>';
-	                	htmlInfoUsr += '<p><b>Tamaño de Pantalla (w*h)</b>: '+ Exj.calcWidth(100)+' * '+Exj.calcHeight(100)+'</p>';
-	                }
-                    */
-                }
-                
-                htmlInfoUsr += '</div>';
-                
-                var tableInfoExtra = null;
-                if(Exj.Global.itemsDisplay && Exj.Global.itemsDisplay.length > 0){
-                	// htmlInfoUsr += '<div>';
-                	
-                	var itemsTable = new Array();
-                	for(var i=0, item; i < Exj.Global.itemsDisplay.length; i++){
-                		item = Exj.Global.itemsDisplay[i];
-                		
-                		itemsTable.push({
-                			html: '<b>'+item.label+'</b>',
-                			cellCls: 'highlight'
-                		}, {
-                			html: item.value
-                		});
-                	}
-                	
-					tableInfoExtra = new Ext.Panel({
-					    title: 'INFORMACION GENERAL GYM Cloud!',
-					    layout:'table',
-					    border: true,
-					    style: 'padding: 3px 0px',
-					    defaults: {
-					        bodyStyle:'padding:3px',
-					        border: false
-					    },
-					    layoutConfig: {
-					        columns: 2
-					    },
-					    items: itemsTable
-					});                	
-                	
-                	// xxx
-                	// htmlInfoUsr += ;
-                	
-                	// htmlInfoUsr += '</div>';
-                }
-                
-                Exj.Global.itemsDisplay = null;
-                
-                htmlInfoUsr += '<img unselectable="on" class="vu-img-logo-app" src="'+Exj.Global.infoUser.uri_logo_frontal+'"/>';
-              //  htmlInfoUsr += '<div id="date_info_ride"></div>';
-                
-                /* dato del Usuario con: Exj.Global.infoUser */
-				var htmlUser = '';
-				htmlUser += '<p class="headerUsuario">' + u.GRUPO_USUARIO+'</p>';
-				if(Exj.Global.infoUser.firstname && Exj.Global.infoUser.lastname){
-					htmlUser += '<p class="headerUsuario">';
-					htmlUser += '<b>'+Exj.Idioma('NOMBRES')+':</b> '+Exj.Global.infoUser.firstname + ' '+ Exj.Global.infoUser.lastname;
-					htmlUser += '</p>';
-					
-				}
-				else{
-					htmlUser += '<div class="headerAgente">'+u.NOMBRE_USUARIO +  '</div>';
-				}
-				if((Exj.Global.infoUser.avatarapproved == 1) && (Exj.Global.infoUser.avatar)){
-					htmlUser += '<img class="cbThumbPict" title="'+u.NOMBRE_USUARIO+'" alt="' + u.NOMBRE_USUARIO + '"';
-					htmlUser += 'src="' + Exj.getPathImageUserAvatar() + '"';
-					htmlUser += '/>';
-				}
+                                
 				
 				var itemsPanelInfo = new Array();
 
-				
-				itemsPanelInfo.push(new Ext.form.Label({
-                    html: htmlInfoUsr 
-                }));
-                
-                if(tableInfoExtra){
-                	itemsPanelInfo.push(tableInfoExtra);
+                if (Exj.Global.infoGeneral) {
+                    itemsPanelInfo.push(Exj.Global.infoGeneral);
                 }
-                
-				itemsPanelInfo.push(new Ext.form.Label({
-                     html: htmlUser
-                }));
 
-                /* xxx test */
-                /*
-				itemsPanelInfo.push({
-					id: 'btnFullScreenApp',
-					xtype: 'button',
-					text: 'Full Screen',
-					listeners: {
-						click: function(){
-							Exj.fullScreen();
-						}
-					}
-				});
-				*/
+                var lblSizeScreen = null;
+                if(Exj.Global.infoUser.usertype == "Super Administrator"){
+                    var htmlInfoSu = '<p><b>Navegador</b>: '+ navigator.userAgent+'</p>';
+
+                    lblSizeScreen = new Ext.form.Label({
+                         html: ''
+                    });
+
+                    lblSizeScreen.updateHtmlInfo = function(){
+                        this.setText('<p><b>Tamaño de Pantalla (w*h)</b>: '+ Exj.calcWidth(100)+' * '+Exj.calcHeight(100)+'</p>', false);
+                    };
+
+                    if (htmlInfoSu) {
+                        itemsPanelInfo.push(new Ext.form.Label({
+                             html: htmlInfoSu
+                        }));
+                    }
+
+                    itemsPanelInfo.push(lblSizeScreen);
+                }
 				
                 var p =  new Ext.Panel({
                     id: 'idPanelInfo',
@@ -408,6 +273,13 @@ Ext.onReady(function(){
                     style: 'padding: 6px',
                     items: itemsPanelInfo
                 });
+
+                if (lblSizeScreen) {
+                    p.lblSizeScreen = lblSizeScreen;
+                    p.on('afterlayout', function(senderPnl, layout){
+                        senderPnl.lblSizeScreen.updateHtmlInfo();
+                    });
+                }
                
                 config.callBackTools.refresh = function(sender){
                     p.doLayout();

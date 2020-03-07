@@ -761,7 +761,7 @@ Exj.loadReportIframe = function (params) {
 };
 
 Exj.getHeadPrintHTML = function (senderBtn, nodeToPrint) {
-    return '<head><link href="./templates/sy_gym/css/impresion.css" type="text/css" rel="stylesheet"/></head>';
+    return '<head><link href="./templates/'+Exj.Global.nameTplSys+'/css/impresion.css" type="text/css" rel="stylesheet"/></head>';
 };
 
 Exj.exjPrintNodeHTML = function (senderBtn, nodeToPrint) {
@@ -1262,18 +1262,6 @@ Exj.setterBaseParamsToStore = function (params) {
     return (nSetters > 0);
 };
 
-Exj.getUsuario = function () {
-    var usrName = Exj.getValueDom('hUsrName');
-    var usrType = Exj.getValueDom('hUsrType');
-
-    var usr = new Object();
-
-    usr.NOMBRE_USUARIO = usrName;
-    usr.GRUPO_USUARIO = usrType;
-
-    return usr;
-};
-
 Exj.getGlobales = function () {
     var obj = '';
     var jsonUsr = Exj.getValueDom('hfGlobales');
@@ -1653,13 +1641,16 @@ Exj.loadDataApp = function (config) {
             Exj.isSessionOut = false;
             var dataGlobal = response.data;
 
+            Exj.Global.nameTplSys = dataGlobal.nameTplSys;
+            // console.log('dataGlobal: ', dataGlobal);
+
             /*
              if(MooTools){
              MooTools = null;
              }
              */
             Exj.Const = dataGlobal.Const; // constantes de la app
-            Ext.BLANK_IMAGE_URL = Exj.Const.uriBase + 'templates/sy_gym/images/icons/s.gif';
+            Ext.BLANK_IMAGE_URL = Exj.Const.uriBase + 'templates/'+Exj.Global.nameTplSys+'/images/icons/s.gif';
 
 
             Exj._EXJ_APP_COMPANIA = Exj.Const._EXJ_APP_COMPANIA; /* ALIAS */
@@ -1671,6 +1662,7 @@ Exj.loadDataApp = function (config) {
 
             Exj.Global.infoUser = dataGlobal.infoUser;
             Exj.Global.itemsDisplay = dataGlobal.itemsDisplay;
+            Exj.Global.infoGeneral = dataGlobal.infoGeneral;
             Exj.Global.emisor = dataGlobal.emisor;
 
             Exj.pg.valuesMap = dataGlobal.pgValuesMap;
@@ -1811,7 +1803,10 @@ Exj.rendererFormatDateTime = function (value, cfg, r) {
     return Exj.rendererText(valueDate);
 };
 
-Exj.URI.dirImages = './templates/sy_gym/images/icons/16x16/';
+Exj.URI.getDirImages = function() {
+    return './templates/'+Exj.Global.nameTplSys+'/images/icons/16x16/';
+};
+
 Exj.URI.getIconDownload = function (uriFile, isExtFile) {
     if (!uriFile) {
         uriFile = '';
@@ -1867,7 +1862,7 @@ Exj.URI.getIconDownload = function (uriFile, isExtFile) {
             break;
     }
 
-    return (Exj.URI.dirImages + nameImg);
+    return (Exj.URI.getDirImages() + nameImg);
 };
 
 

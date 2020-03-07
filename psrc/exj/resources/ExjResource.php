@@ -15,7 +15,7 @@ class ExjResource {
     const DIR_FILES_JS_ALL = 'app/public/js/all';
 
     // valor numérico
-    const SEC_DEPLOY_JS = 201;
+    // const SEC_DEPLOY_JS = 201;
 
     protected static $pathDirBase='';
     private static $_mapPrefixesCmp = null;
@@ -173,7 +173,20 @@ class ExjResource {
         $namesFiles[] = "exj_util";
         $namesFiles[] = "exj_main";
 
-        return self::buildSrcs($uriBase, $namesFiles, $isModeDebugUI);
+        $filesJs = self::buildSrcs($uriBase, $namesFiles, $isModeDebugUI);
+
+        // adicionar config de la app
+        $uriBase = self::GetURIBase() . 'app/web/common/js';
+        $namesFiles = [
+            "app_cfg"
+        ];
+
+        $filesAppJs = self::buildSrcs($uriBase, $namesFiles, $isModeDebugUI);
+        if (!empty($filesAppJs)) {
+            $filesJs = array_merge($filesJs, $filesAppJs);
+        }
+
+        return $filesJs;
     }
 
     // ExjResource::GetNameTemplateSys()
@@ -199,7 +212,7 @@ class ExjResource {
     public static function GetArrayModulesMenuExcludes() {
         $query = "SELECT g.name 
  FROM jos_menu m INNER JOIN jos_groups g ON m.access = g.id 
- WHERE (m.menutype = 'mnu_gym') and g.id >= 3 and m.published <= 0";
+ WHERE (m.menutype = 'mnu_app_main') and g.id >= 3 and m.published <= 0";
 
         $db = & JFactory::getDBO();
         $db->setQuery($query);
@@ -230,6 +243,20 @@ class ExjResource {
         return $items;
     }
 
+    public static function GetSecDeployJs() {
+        $ver = trim(self::GetCfgExj()->versionApp);
+        if (!$ver) {
+            return 3;
+        }
+
+        $ver = intval(str_replace('.', '', $ver));
+        if (is_nan($ver) || $ver <= 0) {
+            $ver = 6;
+        }
+
+        return $ver;
+    }
+
     public static function GetNameFileJsAppPack($usertype=''){
         if (!$usertype) {
             if ($usr = JFactory::getUser()) {
@@ -238,7 +265,8 @@ class ExjResource {
         }
 
         $value = self::PREFIX_FILEJS_PACK;
-        $value .= 'app_'.dechex(self::SEC_DEPLOY_JS).'_';
+        // $value .= 'app_'.dechex(self::SEC_DEPLOY_JS).'_';
+        $value .= 'app_'.dechex(self::GetSecDeployJs()).'_';
         $value .= self::GetAliasFromUserType($usertype);
 
         $value .= '.js';
@@ -307,13 +335,12 @@ class ExjResource {
         $cfgPack = new stdClass();
         $cfgPack->directoriesRoots = array(
             'app',
-            self::GetDirRelativeResourcesJs()
+            self::GetDirRelativeResourcesJs(),
+            self::GetDirRelativeProvider() . '/web'
         );
 
         $cfgPack->dirOutput = self::DIR_FILES_JS_ALL;
         $cfgPack->prefixPack = self::PREFIX_FILEJS_PACK;
-
-        // $cfgPack->dirOutput = self::GetDirProductionFilesJs();
         
         $cfgPack->dirsExclude = array(
             'exj_deploys', 'exj_components' , 'exj_component_tpls',
@@ -361,14 +388,6 @@ class ExjResource {
         */
 
         return $cfgPack;
-    }
-
-    public static function GetDirProductionFilesJs(){
-        $dirProd = realpath(JPATH_BASE.'/..');
-        $dirProd = str_replace("\\", "/", $dirProd);
-        $dirProd .= '/release/gymcloud/produccion/'.self::DIR_FILES_JS;
-        
-        return $dirProd;
     }
 
     public static function GetDirAppWeb(){
@@ -691,7 +710,8 @@ class ExjResource {
             self::PREFIX_FILEJS_PACK.'exj_mail.js',
             self::PREFIX_FILEJS_PACK.'exj_override.js',
             self::PREFIX_FILEJS_PACK.'exj_util.js',            
-            self::PREFIX_FILEJS_PACK.'exj_main.js'
+            self::PREFIX_FILEJS_PACK.'exj_main.js',
+            self::PREFIX_FILEJS_PACK.'app_cfg.js'
         );
 
         foreach ($componetsApp as $componetApp) {

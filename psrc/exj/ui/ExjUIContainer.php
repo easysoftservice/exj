@@ -31,6 +31,10 @@ class ExjUIContainer extends ExjUIBoxComponent {
     }
 
     public function setDefaults($value){
+        if (is_array($value)) {
+            $value = (object) $value;
+        }
+
         $this->defaults = $value;
         return $this;
     }
@@ -53,6 +57,30 @@ class ExjUIContainer extends ExjUIBoxComponent {
         $this->items = $value;
         return $this;
     }
+
+    public function addItem($value){
+        if (is_array($value)) {
+            $value = (object) $value;
+        }
+
+        if (!isset($this->items)) {
+            $this->items = array();
+        }
+
+        $this->items[] = $value;
+        return $this;
+    }
+
+    public function setLayoutConfig($value){
+        if (is_array($value)) {
+            $value = (object) $value;
+        }
+
+        $this->layoutConfig = $value;
+        return $this;
+    }
+
+    
 
     
 }

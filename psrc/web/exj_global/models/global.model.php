@@ -211,12 +211,10 @@ class ModuleMainUI extends ExjObject {
 
         $html = array();
         $html[] = "<div class='vu-mod-main-cnt-title'>$this->title</div>";
-        /**
 
-         */
-        //	$html[] = '<img class="vu-img-logo-app" src="templates/sy_gym/images/logo_font_end.png" unselectable="on">';
-        $html[] = '<img src="templates/sy_gym/images/logo_font_end.png" unselectable="on">';
-
+        $html[] = ExjBuildHtml::CreateImg(
+            ExjResource::GetUriLogoFrontEndDefault()
+        )->addAttr('unselectable', 'on')->toHtml();
 
         $html = implode('<br/>', $html);
         $html = '<div align="center">' . $html . "</div>";

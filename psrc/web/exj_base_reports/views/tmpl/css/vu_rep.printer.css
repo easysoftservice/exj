@@ -1,0 +1,160 @@
+/* Estilos para Impresora */
+
+body {
+    color: black;
+    font-family: Arial,Verdana,Helvetica,sans-serif;
+    font-size: 12px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+table {
+    width: 100%;
+}
+
+.page-break	{ 
+	/* display: block; */
+	/* page-break-before: always; */
+/*	page-break-after: auto; */
+/*	page-break-after: initial; */
+	 page-break-before: initial;
+}
+
+.vu-rep-pagina {
+    background-color: white;
+    border-color: white;
+    border-style: dashed;
+    border-width: 1px;
+    margin: 0;
+}
+.vu-rep-pagina-ct {
+    background-color: white;
+    border-color: white;
+    border-style: none;
+    overflow: hidden;
+}
+
+.vu-rep-line {
+	border: 1px solid black;
+	/*
+ 	background-color: black;
+    height: 1px;
+    */
+    margin-bottom: 3mm;
+    margin-top: 3mm;
+}
+
+.vu-rep-ct {
+    position: relative;
+}
+.vu-rep-ct table {
+    font-size: 10px;
+    table-layout: fixed;
+}
+
+/* color para los valores */
+.vu-rep-ct table td div {
+    color: black;
+}
+.vu-rep-ct-datos {
+    background-color: white;
+    border: 0 none;
+    border-collapse: separate;
+    border-spacing: 2px 0;
+    margin: 0;
+    padding: 1px 0 3px;
+    width: 100%;
+}
+.vu-rep-ct-datos tr {
+    height: 15pt;
+}
+
+.vu-rep-ct-datos td {
+    font-size: 8pt;
+}
+
+.vu-rep-ct-datos td, th {
+    border-collapse: collapse;
+    padding: 0;
+    text-align: center;
+}
+.vu-rep-ct-label {
+    font-size: 10px !important;
+    text-align: center !important;
+}
+
+.vu-rep-value {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.vu-rep-ct td div img {
+    display: none;
+    height: inherit;
+}
+
+.vu-rep-border-top {
+	border-top: 1px solid black;
+}
+
+.vu-rep-completar-puntos {
+	border-bottom: 1px dashed black;
+	padding-top: 18px;
+    position: absolute;
+    width: 100%;
+}
+
+.vu-rep-text-resaltar {
+	font-weight: bold;
+}
+
+.vu-rep-title1 {
+    border: 0 none;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.vu-rep-title2 {
+    border: 0 none;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.vu-rep-firmas{
+	font-size: 12px;
+    padding-top: 21mm;
+    table-layout: fixed;
+}
+.vu-rep-firmas tr {
+	height: 30mm;
+}
+.vu-rep-firmas td div {
+    text-align: center;
+}
+
+.vu-rep-prefac {
+    background-image: none;
+}
+
+.vu-rep-item-abs {
+	border: 1px dotted white;
+    position: absolute;
+    white-space: nowrap;
+    overflow: hidden;
+    height: 4mm;
+    padding: 0;
+}
+
+.vu-rep-input {
+	height: auto;
+	border: 1px solid white;
+	text-transform: uppercase;
+}
+
+.vu-rep-radiox {
+	background-color: white;
+    border: 3px solid white;
+    text-align: center;
+    height: 6mm;
+    width: 6mm;
+}

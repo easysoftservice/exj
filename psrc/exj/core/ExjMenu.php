@@ -4,8 +4,8 @@
 defined('_JEXEC') or die('Restricted access');
 
 class ExjMenu extends ExjObject {
-	const MENU_TYPE_APP = 'mnu_gym';
-	const MENU_TYPE_OPCGEN_APP = 'mnu_gym_opc_gen';
+	const MENU_TYPE_APP = 'mnu_app_main';
+	const MENU_TYPE_OPCGEN_APP = 'mnu_app_opc_gen';
 
 	public static function GetRowsFromIdAccess($idAccess, $fields='*'){
 		if (is_array($fields)) {

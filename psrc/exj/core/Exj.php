@@ -110,6 +110,12 @@ class Exj extends ExjObject {
         return self::GetValueCfg('nameApp', '');
     }
 
+    public static function GetDescApp() {
+        return self::GetValueCfg('descApp', '');
+    }
+
+    
+
     public static function GetValueCfg($prop, $defValue=null)
     {
         $cfg = self::GetCfg();

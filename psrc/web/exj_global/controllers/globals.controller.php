@@ -49,17 +49,12 @@ class AppGlobalsController extends ExjController {
         if(!$dataGlobal->infoUser->uri_logo_frontal) {
             $dataGlobal->infoUser->uri_logo_frontal = ExjResource::GetUriLogoFrontEndDefault();
         }
+
+        $dataGlobal->nameTplSys = ExjResource::GetNameTemplateSys();
 		
 		$hInfoUser = new ExjHelperInfoUser();
 		$hInfoUser->bindToSession($dataGlobal->infoUser);
 	//	print_r($dataGlobal->infoUser);
-		
-		
-		// Información de terceros
-		if (class_exists('AppGlobalExtraPlugin')) {
-			$plgGlobal = new AppGlobalExtraPlugin($this);
-			$dataGlobal->itemsDisplay = $plgGlobal->getItemsDisplay();
-		}
 
 		$dataGlobal->emisor = null;
 		$dataEmisor = null;
@@ -118,6 +113,17 @@ class AppGlobalsController extends ExjController {
 		// Datos para los modulos principales
 		$dataGlobal->itemsModulesMains = AppGlobalModel::GetItemsModulesMains();
 		$dataGlobal->itemsCmpAutoLoad = AppGlobalModel::GetItemsCmpAutoLoad();
+
+		// Información de terceros
+		if (class_exists('AppInfoGeneralPluginDisplay')) {
+			$plgGlobal = new AppInfoGeneralPluginDisplay($this);			
+		}
+		else {
+			$plgGlobal = new ExjInfoGeneralPluginDisplay($this);
+		}
+
+		$plgGlobal->setDataGlobal($dataGlobal)->loadDataUI();
+		$dataGlobal->infoGeneral = $plgGlobal->getDataUI();
 		 
 		$response->data = $dataGlobal;
 		return $response;

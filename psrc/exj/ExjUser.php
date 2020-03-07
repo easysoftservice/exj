@@ -3,6 +3,7 @@ defined('_JEXEC') or die('Acceso Restringido');
 
 class ExjUser {
 	private static $_jUser=null;
+    private static $_autoEncodeISO = false;
 
 	public static function GetUserJoomla(){
 		if (!self::$_jUser) {
@@ -15,7 +16,7 @@ class ExjUser {
 	protected static function GetPropjUser($prop, $valDef=null) {
 		if ($usr=self::GetUserJoomla()) {
 			if ($usr->id > 0) {
-				return $usr->$prop;
+				return self::NormalizeValue($usr->$prop);
 			}
 		}
 
@@ -137,7 +138,7 @@ class ExjUser {
     }
 
     static function GetNombreCompania() {
-        return self::GetUserSys()->name_company;
+        return self::NormalizeValue(self::GetUserSys()->name_company);
     }
 
     public static function GetIdPais() {
@@ -149,7 +150,7 @@ class ExjUser {
     }
 
     static function GetNombreLenguaje() {
-        return self::GetUserSys()->name_lang;
+        return self::NormalizeValue(self::GetUserSys()->name_lang);
     }
 
     public static function GetAcronimoLenguaje() {
@@ -170,11 +171,11 @@ class ExjUser {
     }
 
     static function GetNombrePais() {
-        return self::GetUserSys()->nom_pais;
+        return self::NormalizeValue(self::GetUserSys()->nom_pais);
     }
 
     public static function GetEmailSys() {
-        return self::GetUserSys()->email;
+        return self::NormalizeValue(self::GetUserSys()->email);
     }
 
     /**
@@ -196,7 +197,7 @@ class ExjUser {
      * @return string
      */
     static function GetCodigoCliente() {
-        return self::GetUserSys()->cod_cliente;
+        return self::NormalizeValue(self::GetUserSys()->cod_cliente);
     }
 
     /**
@@ -214,12 +215,11 @@ class ExjUser {
      * @return string
      */
     public static function GetNombreEmpresa() {
-
-        return self::GetUserSys()->nom_empresa;
+        return self::NormalizeValue(self::GetUserSys()->nom_empresa);
     }
 
     public static function GetCodigoEmpresa() {
-        return self::GetUserSys()->cod_empresa;
+        return self::NormalizeValue(self::GetUserSys()->cod_empresa);
     }
     
     public static function GetURILogoFrontalEmpresa() {
@@ -231,20 +231,26 @@ class ExjUser {
     }
 
     public static function GetAliasPersona() {
-        return self::GetUserSys()->alias_persona;
+        return self::NormalizeValue(self::GetUserSys()->alias_persona);
     }
 
     public static function GetNumDocPersona() {
         return self::GetUserSys()->nro_doc_persona;
     }
 
-    public static function GetNombreCiudad($convertToISO = false) {
-        $name_ciu_com = self::GetUserSys()->name_ciu_com;
-        if ($convertToISO && $name_ciu_com) {
-            Exj::TrasferCharsDecodeUTF8ToISO($name_ciu_com);
+    public static function SetAutoEncodeISO($value = true) {
+        self::$_autoEncodeISO = $value;
+    }
+
+    protected static function NormalizeValue($value) {
+        if (!empty($value) &&  self::$_autoEncodeISO && !is_numeric($value)) {
+            Exj::TrasferCharsDecodeUTF8ToISO($value);
         }
-        
-        return $name_ciu_com;
+        return $value;
+    }
+
+    public static function GetNombreCiudad() {
+        return self::NormalizeValue(self::GetUserSys()->name_ciu_com);
     }
 
     public static function GetCodigoProvincia() {
@@ -252,12 +258,12 @@ class ExjUser {
     }
     
     public static function GetNombreProvincia() {
-        return self::GetUserSys()->name_state;
+        return self::NormalizeValue(self::GetUserSys()->name_state);
     }
     
 
     public static function GetNacionalidad() {
-        return self::GetUserSys()->nacionalidad_pais;
+        return self::NormalizeValue(self::GetUserSys()->nacionalidad_pais);
     }
 
     /**
@@ -267,19 +273,19 @@ class ExjUser {
      */
     public static function GetNomsApes() {
         $infoUsuario = self::GetUserSys();
-        $noms_apes_per = $infoUsuario->nombres_persona;
-        if (!$noms_apes_per) {
-            $noms_apes_per = '';
+        $value = $infoUsuario->nombres_persona;
+        if (!$value) {
+            $value = '';
         }
 
         if ($infoUsuario->apellidos_persona) {
-            if ($noms_apes_per) {
-                $noms_apes_per = ' ';
+            if ($value) {
+                $value .= ' ';
             }
-            $noms_apes_per .= $infoUsuario->apellidos_persona;
+            $value .= $infoUsuario->apellidos_persona;
         }
 
-        return $noms_apes_per;
+        return self::NormalizeValue($value);
     }
 
     /**
