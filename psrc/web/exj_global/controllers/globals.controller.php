@@ -39,7 +39,7 @@ class AppGlobalsController extends ExjController {
 		
 		$dataGlobal->Const = AppGlobalModel::getDataConstantesUI();
 		
-		$dataGlobal->infoUser = AppGlobalModel::getDataInfoUser();
+		$dataGlobal->infoUser = AppGlobalModel::GetDataInfoUser();
 
 		if (Exj::GetError()->haveError()) {
 			$response->forceExit();
@@ -55,6 +55,8 @@ class AppGlobalsController extends ExjController {
 		$hInfoUser = new ExjHelperInfoUser();
 		$hInfoUser->bindToSession($dataGlobal->infoUser);
 	//	print_r($dataGlobal->infoUser);
+	
+		$dataGlobal->infoUser->isRolSuperAdmin = ExjUser::IsRolSuperAdmin();
 
 		$dataGlobal->emisor = null;
 		$dataEmisor = null;

@@ -4,7 +4,7 @@
 defined( '_JEXEC' ) or die( 'Acceso Restringido' );
 
 /**
- * Plugin para presentaciÃ³n en la UI
+ * Plugin para presentación en la UI
  *
  */
 class ExjPluginDisplay extends ExjPlugin {
@@ -106,6 +106,24 @@ class ExjPluginDisplay extends ExjPlugin {
 			->toHtml();
 	}
 
+	protected function getHtmlNavegador() {
+		return ExjBuildHtml::Create('div')
+			->setContent('<b>Navegador</b>: {navigator.userAgent}')
+			->toHtml();
+	}
+
+	
+	protected function getHtmlSizeScreen() {
+		return ExjBuildHtml::Create('div')
+			->setContent(
+				ExjBuildHtml::GetLabelValue(
+					'Tamaño de Pantalla (w*h)',
+					'<span id="_sizeScreen">{Exj.calcWidth()} * {Exj.calcHeight()}</span>'
+				)
+			)
+			->toHtml();
+	}
+
 	protected function getHtmlNameCompany() {
 		return ExjBuildHtml::Create('div')
 			->addAttr('class', 'exj-title-main')
@@ -132,7 +150,7 @@ class ExjPluginDisplay extends ExjPlugin {
 	}
 	
 	/**
-	 * Carga de items para presentaciÃ³n
+	 * Carga de items para presentación
 	 *
 	 */
 	public function loadDataUI() {
@@ -154,6 +172,45 @@ class ExjPluginDisplay extends ExjPlugin {
 			->addRowHtml($this->getHtmlInfoDebug());
 
 		return $pnl;
+	}
+
+	protected function getInfoHtmlAppUI() {
+		$contentHtml = array();
+
+		$contentHtml[] = ExjBuildHtml::Create('p')->setContent(
+			$this->getHtmlNameCompany()
+		);
+		
+		$contentHtml[] = ExjBuildHtml::Create('p')->setContentLabelValue(
+			strtoupper(ExjUser::GetUserType()), ExjUser::GetNomsApes()
+		);
+
+		$contentHtml[] = ExjBuildHtml::Create('p')->setContentLabelValue(
+			'CIUDAD', $this->getHtmlNameCiuCom(). ' - '. $this->getHtmlNameState()
+		);
+
+		$contentHtml[] = ExjBuildHtml::Create('p')->setContentLabelValue(
+			'LENGUAJE', $this->getHtmlNameLang()
+		);
+
+		$contentHtml[] = ExjBuildHtml::Create('p')->setContentLabelValue(
+			'AUTORIZADO A', $this->getHtmlNomEmpresa()
+		);
+		
+		$contentHtml[] = $this->getHtmlInfoDebug();
+
+		if (ExjUser::IsRolSuperAdmin()) {
+			$contentHtml[] = $this->getHtmlNavegador();
+			$contentHtml[] = $this->getHtmlSizeScreen();
+		}
+
+		$html = ExjBuildHtml::Create('div')
+					->setId('bubble-markup')
+					->setClass('headerTitle')
+					->setContent($contentHtml)
+					->toHtml();
+		
+		return $html;
 	}
 }
 ?>

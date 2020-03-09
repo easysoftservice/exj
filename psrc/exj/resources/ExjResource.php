@@ -140,38 +140,35 @@ class ExjResource {
         return self::buildSrcs(self::GetUriExtJs(), $namesFiles, $isModeDebugUI);
     }
 
-    static function getSrcs_CompBase($isModeDebugUI) {
-        if (!$isModeDebugUI) {
-            return array();
-        }
+    protected static function GetNamesFilesBaseJs() {
+        return array(
+            'exj_base',
+            'exj_extends',
+            'exj_extend_layouts',
+            'exj_winsubmit',
+            'exj_docpanel',
+            'exj_action_grid',
+            'exj_files',
+            'exj_mail',
+            'exj_override',
+            'exj_util',
+            'exj_main'
+        );
+    }
 
+    static function getSrcs_CompBase($isModeDebugUI) {
         $namesFiles = array();
+
+        if (!$isModeDebugUI) {
+            return $namesFiles;
+        }
 
         $uriBase = self::GetURIBase();
         $uriBase .= self::GetDirRelativeResourcesJs();
 
-        /*
-          if ($isModeDebugUI) {
-          $uriBase .= '/src';
-          $namesFiles[] = "extend/TabCloseMenu";
-          $namesFiles[] = "extend/Portal";
-          $namesFiles[] = "extend/BubblePanel";
-          $namesFiles[] = "extend/LinkButton";
-          $namesFiles[] = "extend/ValidationTypes";
-          $namesFiles[] = "extend/FileUploadField";
-          }
-         */
         $namesFiles[] = "extend/exj_extend-all";
-
-        $namesFiles[] = "exj_base";
-        $namesFiles[] = "exj_extends";
-        $namesFiles[] = "exj_extend_layouts";
-        $namesFiles[] = "exj_action_grid";
-        $namesFiles[] = "exj_files";
-        $namesFiles[] = "exj_mail";
-        $namesFiles[] = "exj_override";
-        $namesFiles[] = "exj_util";
-        $namesFiles[] = "exj_main";
+        $namesFiles = array_merge($namesFiles, self::GetNamesFilesBaseJs());
+        
 
         $filesJs = self::buildSrcs($uriBase, $namesFiles, $isModeDebugUI);
 
@@ -699,20 +696,17 @@ class ExjResource {
         // bbbbb
         $componetsApp = self::GetComponetsApp($isModeDebugUI, $gid);
         // print_r($componetsApp);
-
+        
         $filesJoins = array(
-            self::PREFIX_FILEJS_PACK.'exj_extend-all.js',
-            self::PREFIX_FILEJS_PACK.'exj_base.js',
-            self::PREFIX_FILEJS_PACK.'exj_extends.js',
-            self::PREFIX_FILEJS_PACK.'exj_extend_layouts.js',
-            self::PREFIX_FILEJS_PACK.'exj_action_grid.js',
-            self::PREFIX_FILEJS_PACK.'exj_files.js',
-            self::PREFIX_FILEJS_PACK.'exj_mail.js',
-            self::PREFIX_FILEJS_PACK.'exj_override.js',
-            self::PREFIX_FILEJS_PACK.'exj_util.js',            
-            self::PREFIX_FILEJS_PACK.'exj_main.js',
-            self::PREFIX_FILEJS_PACK.'app_cfg.js'
+            self::PREFIX_FILEJS_PACK.'exj_extend-all.js'
         );
+
+        $filesBaseJs = self::GetNamesFilesBaseJs();
+        foreach ($filesBaseJs as $fileBaseJs) {
+            $filesJoins[] = self::PREFIX_FILEJS_PACK . $fileBaseJs . '.js';
+        }
+
+        $filesJoins[] = self::PREFIX_FILEJS_PACK.'app_cfg.js';
 
         foreach ($componetsApp as $componetApp) {
             $nameComponent = $componetApp->nameComponent;
@@ -753,7 +747,7 @@ class ExjResource {
         }
 
         // echo "\nfilesJoins: ". print_r($filesJoins, true);
-        $codesJs = "/* GymCloud.- Autor: Byron V. Córdova Mora */\n";
+        $codesJs = "/* " .self::GetCfgExj()->nameApp . ".- Autor: Byron V. Córdova Mora */\n";
         foreach ($filesJoins as $fileJoin) {
             $pathFile = self::DIR_FILES_JS_ALL . '/' . $fileJoin;
 

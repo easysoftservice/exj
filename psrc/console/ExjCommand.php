@@ -150,7 +150,7 @@ class ExjCommand extends Command {
         }
 
 
-        $infoUser = AppGlobalModel::getDataInfoUser();
+        $infoUser = AppGlobalModel::GetDataInfoUser();
         $hInfoUser = new ExjHelperInfoUser();
         $hInfoUser->bindToSession($infoUser);
         return $this;

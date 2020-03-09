@@ -38,9 +38,7 @@ Exj.ui.modules.AcercadeApp = function(senderMenu, pGen){
         	}
 
         	if (dataWin.html) {
-        		dataWin.html = dataWin.html.replace('{navigator.userAgent}', navigator.userAgent);
-	        	dataWin.html = dataWin.html.replace('{Exj.calcWidth()}', Exj.calcWidth());
-	        	dataWin.html = dataWin.html.replace('{Exj.calcHeight()}', Exj.calcHeight());
+                dataWin.html = Exj.replaceVarsGenerals(dataWin.html);
         	}
         	
         	Exj.showHTML(dataWin);

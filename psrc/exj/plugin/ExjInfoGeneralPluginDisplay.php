@@ -4,25 +4,18 @@ defined('_JEXEC') or die('Acceso restringido');
 
 class ExjInfoGeneralPluginDisplay extends ExjPluginDisplay {
 	public function loadDataUI() {
-		$colInfoApp = ExjUIItemColumn::Create()
-			->setWidth(600)
-			->setItems($this->getInfoAppUI());
+		$html = array();
 
-		$colImg = ExjUIItemColumn::Create()
-			->setColumnWidth(1)
-			->setHtml($this->getHtmlImgLogoFront());
-	//	$colImg->style = 'color:red';
+		$html[] = $this->getInfoHtmlAppUI();
+		$html[] = $this->getHtmlImgLogoFront(['width' => '300px']);
+
+
+		$html = implode('', $html);
 
 		$dataUI = new ExjUIPanel();
-		$dataUI->setLayout('column')
+		$dataUI->setLayout('anchor')
 			->setBorder(false)
-			->setDefaults([
-				'border' => false
-			])
-			->setItems([
-				$colInfoApp,
-				$colImg
-			]);
+			->setHtml($html);
 
 		$this->setDataUI($dataUI);
 	}

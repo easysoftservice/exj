@@ -243,20 +243,25 @@ Ext.onReady(function(){
 				var itemsPanelInfo = new Array();
 
                 if (Exj.Global.infoGeneral) {
+                    if (Exj.Global.infoGeneral.html) {
+                        Exj.Global.infoGeneral.html = Exj.replaceVarsGenerals(Exj.Global.infoGeneral.html);
+                    }
+
                     itemsPanelInfo.push(Exj.Global.infoGeneral);
                 }
 
-                var lblSizeScreen = null;
-                if(Exj.Global.infoUser.usertype == "Super Administrator"){
-                    var htmlInfoSu = '<p><b>Navegador</b>: '+ navigator.userAgent+'</p>';
+                if(Exj.Global.infoUser.isRolSuperAdmin){
+                    var htmlInfoSu = '', lblSizeScreen = null;
 
-                    lblSizeScreen = new Ext.form.Label({
-                         html: ''
-                    });
+                    if (!Exj.Global.infoGeneral.html || Exj.Global.infoGeneral.html.indexOf('Navegador') < 0) {
+                        htmlInfoSu = '<p><b>Navegador</b>: '+ navigator.userAgent+'</p>';
+                    }
 
-                    lblSizeScreen.updateHtmlInfo = function(){
-                        this.setText('<p><b>Tamaño de Pantalla (w*h)</b>: '+ Exj.calcWidth(100)+' * '+Exj.calcHeight(100)+'</p>', false);
-                    };
+                    if (!Exj.Global.infoGeneral.html || Exj.Global.infoGeneral.html.indexOf('_sizeScreen') < 0) {
+                        lblSizeScreen = new Ext.form.Label({
+                             html: '<p><b>Tamaño de Pantalla (w*h)</b>: <span id="_sizeScreen"></span>'
+                        });
+                    }
 
                     if (htmlInfoSu) {
                         itemsPanelInfo.push(new Ext.form.Label({
@@ -264,7 +269,9 @@ Ext.onReady(function(){
                         }));
                     }
 
-                    itemsPanelInfo.push(lblSizeScreen);
+                    if (lblSizeScreen) {
+                        itemsPanelInfo.push(lblSizeScreen);
+                    }
                 }
 				
                 var p =  new Ext.Panel({
@@ -274,12 +281,12 @@ Ext.onReady(function(){
                     items: itemsPanelInfo
                 });
 
-                if (lblSizeScreen) {
-                    p.lblSizeScreen = lblSizeScreen;
-                    p.on('afterlayout', function(senderPnl, layout){
-                        senderPnl.lblSizeScreen.updateHtmlInfo();
-                    });
-                }
+                p.on('afterlayout', function(senderPnl, layout){
+                    var domSizeScreen = Ext.getDom('_sizeScreen');
+                    if (domSizeScreen) {
+                        domSizeScreen.innerText = Exj.calcWidth()+' * '+Exj.calcHeight();
+                    }
+                });
                
                 config.callBackTools.refresh = function(sender){
                     p.doLayout();
@@ -469,7 +476,7 @@ Ext.onReady(function(){
         
         
         // menu principal ***************************************
-        onItemClickMenu = function(senderMenu, e, isMenuIzq, closableTab){
+        var onItemClickMenu = function(senderMenu, e, isMenuIzq, closableTab){
             if (! Exj.dataOk()){
                 return ;
             }

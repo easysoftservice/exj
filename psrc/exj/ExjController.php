@@ -57,7 +57,6 @@ class ExjController {
      * Despacha request para controller-action apropiados por conversación de acuerdo a el método HTTP.
      */
     public function dispatch($request) {
-        global $exj;
         Exj::SetBufferDebugMethod(__METHOD__, 'Se envió parámetro: request:');
         Exj::SetBufferDebug($request);
 
@@ -142,7 +141,6 @@ class ExjController {
             return $response;
         }
 
-        global $exj;
         if (Exj::GetError()->haveError()) {
             return $response;
         }
@@ -248,7 +246,6 @@ class ExjController {
             $id_file = 0; // se crear, si la imagen ya existe, se asigna el id correspondiente
         }
 
-        global $exj;
 
         $archivoEditableModel = new AppArchivoEditableModel(false);
         $archivoEditableModel->setValueId($id_file);
@@ -475,7 +472,6 @@ class ExjController {
 
     public function dispatchDocumentDownload($format, $title = 'Documento', $fileName = 'reporte')
     {
-        global $exj;
 
         Exj::IncludePHPExcel();
         $objPHPExcel = new PHPExcel();
@@ -662,7 +658,6 @@ class ExjController {
      * @return bool si ha ocurrido algún error retorna la instancia de ExjResponse, sino devuelve false
      */
     public function dispatchError($response = null) {
-        global $exj;
 
         if (Exj::GetError()->haveError()) {
             Exj::LogWriteError();
@@ -799,7 +794,6 @@ class ExjController {
     }
 
     protected function reportHTML() {
-        // global $exj;
         $response = new ExjResponse();
 
         // print_r($this->request);
@@ -829,7 +823,10 @@ class ExjController {
 
 
         $dataReportHTML = new stdClass();
-        $dataReportHTML->criteriaModel = self::_ToUICriteriaModelReportHTML($objCriteriaModel, $response);
+        $dataReportHTML->criteriaModel = self::_ToUICriteriaModelReportHTML(
+            $objCriteriaModel, $response
+        );
+        
         //	$dataReportHTML->listModel = self::_ToUIListModelReportHTML($objListModel, $response);
 
         if ($response->haveMsgError()) {
@@ -839,7 +836,6 @@ class ExjController {
         $response->setDataObject($dataReportHTML);
 
         //	$response->setMsgError("Prueba. classController: $classController component: $component");
-
 
         return $response;
     }
@@ -863,7 +859,6 @@ class ExjController {
      * @return ExjResponse
      */
     protected function listModel() {
-        global $exj;
         $response = new ExjResponse();
 
         $nameListModel = '';
@@ -1028,7 +1023,6 @@ class ExjController {
      * @return ExjResponse
      */
     protected function viewModel() {
-        global $exj;
         $response = new ExjResponse();
 
         $nameReadOnlyModel = $this->_getNameController();
@@ -1088,7 +1082,6 @@ class ExjController {
      * @return ExjResponse
      */
     protected function deleteImportGetItems() {
-        global $exj;
 
         $nameTable = '';
         $nameFieldFile = '';
@@ -1152,11 +1145,13 @@ GROUP BY
         $fieldExtras[] = ExjUI::NewFieldInt('nro_del');
         $fieldExtras[] = ExjUI::NewFieldString('name_type_file');
         $fieldExtras[] = ExjUI::NewFieldString('size_file');
-        $cmbFiles = ExjUI::NewComboSimple('cmbFileImp', 'Archivo Importado', $items, $fieldExtras);
+        
+        $cmbFiles = ExjUI::NewComboSimple(
+            'cmbFileImp', 'Archivo Importado', $items, $fieldExtras
+        );
         $cmbFiles->anchor = '96%';
-        $cmbFiles->allowBlank = false;
-        $cmbFiles->blankText = 'Select the file to delete';
-
+        $cmbFiles->setAllowBlank(false)
+            ->setBlankText('Seleccione el archivo a eliminar');
 
         $response->data = $cmbFiles;
 
@@ -1312,8 +1307,6 @@ GROUP BY
         	$cols = Exj::JsonDecode($cols);
         	// print_r($cols);
         }
-
-        global $exj;
         
         // rrr
 
@@ -1411,28 +1404,17 @@ GROUP BY
         // echo '<br/>TEST: ' . __METHOD__  . ' Ln: ' . __LINE__ ;
 
         $dataDownload = new ExjDTODataDownload(
-            $report->getFullPathFileSaved(false),
-            $report->canViewFileInUI(),
-            'out',
-            $report->getFileName(),
-            $report->getExtensionFileSaved()
+            $report->getFullPathFileSaved(false)
         );
 
-        /*
-          $dataDownload = new stdClass();
-          $dataDownload->fileName = $report->getFileName();
-          $dataDownload->idFile = $report->getFullPathFileSaved(true);
-          $dataDownload->idFull = 1;
-          $dataDownload->entry = base64_encode('out');
-          $dataDownload->canViewFile = $report->canViewFileInUI();
-          $dataDownload->fileSize = ExjUtil::RenderSizeBytes(filesize($report->getFullPathFileSaved()));
-          $dataDownload->fileExt = $report->getExtensionFileSaved();
-         */
+        $dataDownload->setFileName($report->getFileName())
+            ->setFileExt($report->getExtensionFileSaved())
+            ->setCanViewFile($report->canViewFileInUI());
 
         if ($report->isFormatPDF()) {
             // NOTE: Se da la url ya que al guardar el archivo no toma el nombre
             // del archivo
-            $dataDownload->url = $report->getURIFileDownload();
+            $dataDownload->setUrl($report->getURIFileDownload());
         }
 
 //    	print_r($dataDownload);
@@ -1545,55 +1527,6 @@ GROUP BY
         }
         return true;
     }
-
-}
-
-class ExjDTODataDownload extends ExjObject {
-
-    public $fileName;
-    public $idFile;
-    public $idFull = 1;
-    public $entry;
-    public $canViewFile;
-    public $fileSize;
-    public $fileExt;
-    public $url = '';
-    private $_fileSizeRaw = 0;
-
-    public function __construct($fullPathFile, $canViewFile = true, $entry = 'out', $fileName = '', $fileExt = '') {
-        $this->entry = base64_encode($entry);
-        $this->canViewFile = ($canViewFile ? 1 : 0);
-        $this->_fileSizeRaw = filesize($fullPathFile);
-        $this->fileSize = ExjUtil::RenderSizeBytes($this->_fileSizeRaw);
-
-        if (!$fileExt || !$fileName) {
-            $path_parts = pathinfo($fullPathFile);
-            if (!$fileExt) {
-                $fileExt = $path_parts['extension'];
-            }
-            if (!$fileName) {
-                $fileName = $path_parts['filename'];
-            }
-        }
-
-        $this->fileName = $fileName;
-        $this->fileExt = $fileExt;
-        $this->idFile = base64_encode($fullPathFile);
-    }
-
-    /**
-     * Obtiene el tamaño del archivo en bytes
-     *
-     * @return int
-     */
-    public function getSizeFile() {
-        return $this->_fileSizeRaw;
-    }
-
-    public function getBaseNameFile() {
-        return $this->fileName . '.' . $this->fileExt;
-    }
-
 }
 
 ?>

@@ -67,15 +67,14 @@ class ExjResponse extends ExjObject {
 
     public static function NewResponseReloadApp($textExtraInfo=''){
         $obj = new stdClass();
-        $obj->_reloadApp = new stdClass();
-        $obj->_reloadApp->titleToShow = Exj::GetTitleApp();
+        $obj->_reloadApp = new ExjReloadAppResponse();
 
-        $obj->_reloadApp->msgToShow = ExjText::__("Recientemente se ha cambiado de Empresa.");
-        $obj->_reloadApp->msgToShow .= '<br/>' . ExjText::__("Empresa actual: ") . ExjUser::GetNombreEmpresa() . '.';
-        $obj->_reloadApp->msgToShow .= '<h2>' . ExjText::__("El sistema automáticamente se actualizará.") . '</h2>';
+        $obj->_reloadApp->addMsgToShow(ExjText::__("Recientemente se ha cambiado de Empresa."))
+            ->addMsgToShow(ExjText::__("Empresa actual: ") . ExjUser::GetNombreEmpresa() . '.')
+            ->addMsgToShow('<h2>' . ExjText::__("El sistema automáticamente se actualizará.") . '</h2>');
 
         if ($textExtraInfo) {
-            $obj->_reloadApp->msgToShow .= '<br>'. $textExtraInfo;
+            $obj->_reloadApp->addMsgToShow($textExtraInfo);
         }
 
         $r = new ExjResponse($obj);

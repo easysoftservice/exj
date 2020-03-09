@@ -696,7 +696,8 @@ class ExjUI {
      * @param string $emptyText Por defecto: - Seleccione -
      * @return ExjUIComboBox
      */
-    public static function NewComboSimple($name, $fieldLabel, $data = null, $fieldsExtras = null, $emptyText = '- Seleccione -', $isIntValue = true) {
+    public static function NewComboSimple($name, $fieldLabel, $data = null, $fieldsExtras = null, $emptyText = '- Seleccione -', $isIntValue = true)
+    {
         $combo = new ExjUIComboBox($name);
         $combo->setModeLocal();
 

@@ -14,6 +14,10 @@ class ExjBuildHtml {
 		return (new ExjBuildHtml('img'))->addAttr('src', $src);
 	}
 
+    public static function GetLabelValue($label, $value) {
+        return "<b>$label</b>: " . $value;
+    }
+
     public function __construct($tag) {
     	$this->_tag = $tag;
     }
@@ -24,6 +28,10 @@ class ExjBuildHtml {
 
     public function setId($value) {
     	return $this->addAttr('id', $value);
+    }
+
+    public function setClass($value) {
+        return $this->addAttr('class', $value);
     }
 
     public function addAttr($key, $value) {
@@ -90,15 +98,38 @@ class ExjBuildHtml {
     	return $value;
     }
 
-    public function setContent($value) {
+    public function setContent($value, $addCnt = false) {
     	if ($value && is_object($value)) {
     		if ($value instanceof ExjBuildHtml) {
     			$value = $value->toHtml();
     		}
     	}
+        elseif ($value === null) {
+            $value = '';
+        }
 
-    	$this->_content = $value;
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if ($item) {
+                    $this->setContent($item, true);
+                }
+            }
+
+            return $this;
+        }
+
+        if ($addCnt && isset($this->_content) && $this->_content) {
+            $this->_content .= $value;
+        }
+        else {
+            $this->_content = $value;
+        }
+    	
     	return $this;
+    }
+
+    public function setContentLabelValue($label, $value) {
+        return $this->setContent(self::GetLabelValue($label, $value));
     }
 
     public function toHtml() {

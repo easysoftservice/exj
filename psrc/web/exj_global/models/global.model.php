@@ -10,7 +10,7 @@ class AppGlobalModel extends ExjModel {
         // $this->setTitleDefault("DATOS GLOBALES");	
     }
 
-    public static function getDataInfoUser() {
+    public static function GetDataInfoUser() {
         return AppGlobalData::GetDataUser();
     }
 

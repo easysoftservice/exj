@@ -6,11 +6,9 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
  * Información Global del Sistema
  *
  */
-class AppGlobalData{
-	
+class AppGlobalData{	
 	
 	public static function GetDataUser() {
-    	global $exj;
     	$db = Exj::InstanceDatabase();
     	
     	$id_user = ExjUser::GetId();
@@ -176,7 +174,6 @@ class AppGlobalData{
     				$city->offset_time_sit = $newOffsetTime;
     				$city->save();
     				if ($city->haveBrokenRules()) {
-    					// $exj->setErrorDB($city->getBrokenRules());
     					echo 'ERROR.<br/>'. $city->getBrokenRules();
     				}
     			}
@@ -243,7 +240,6 @@ class AppGlobalData{
 	 * @return object
 	 */
 	public static function getDataMenus($menutype = '', $idPanelToRender=''){
-    	global $exj;
     	$db = Exj::InstanceDatabase();
     	
     	if (!$menutype) {
@@ -449,8 +445,8 @@ class AppGlobalData{
 		return $tb;
 	}
 	
-	public static function ChangeOffice(ExjResponse &$response, $idOfficeNew, $id_sys_user=0){
-		global $exj;
+	public static function ChangeOffice(ExjResponse &$response, $idOfficeNew, $id_sys_user=0)
+	{
 		/*
 		$db = new ExjDatabase();
 		
